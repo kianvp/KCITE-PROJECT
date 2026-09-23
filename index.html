@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KCITE-PROJECT</title>
+  <style>
+    :root {
+      --bg: #0b0b1a;
+      --surface: #1b1640;
+      --text: #f4f1ff;
+      --muted: #a9a3d6;
+      --accent-1: #ff4d8d;
+      --accent-2: #7c5cff;
+      --glow: #3ee6ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(120% 120% at 50% 0%, var(--surface) 0%, var(--bg) 60%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    main { text-align: center; padding: 2rem; }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(2rem, 6vw, 4rem);
+      letter-spacing: -0.03em;
+    }
+
+    p { margin: 0; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>KCITE-PROJECT</h1>
+    <p>Ready for web development.</p>
+  </main>
+</body>
+</html>
