@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="t">
+  <title id="t">Image placeholder: BDD100K dashcam frame</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0A1520"/>
+      <stop offset="1" stop-color="#16303F"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#sky)"/>
+  <rect y="320" width="1200" height="355" fill="#0C1219"/>
+  <path d="M560 320h80l160 355H400z" fill="#0F1720"/>
+  <g fill="rgba(233,239,245,0.7)">
+    <rect x="590" y="340" width="20" height="34"/>
+    <rect x="585" y="400" width="30" height="52"/>
+    <rect x="576" y="490" width="48" height="80"/>
+  </g>
+  <rect x="40" y="40" width="1120" height="595" rx="16" fill="none" stroke="#2FE6D6" stroke-opacity="0.4" stroke-width="2" stroke-dasharray="14 10"/>
+  <text x="600" y="170" font-family="'Space Grotesk',sans-serif" font-size="52" font-weight="700" fill="#E9EFF5" text-anchor="middle">IMAGE PLACEHOLDER</text>
+  <text x="600" y="220" font-family="'IBM Plex Mono',monospace" font-size="24" fill="#2FE6D6" text-anchor="middle">bdd100k-frame.jpg — 1200 × 675</text>
+  <text x="600" y="612" font-family="'Inter',sans-serif" font-size="22" fill="#9DAAB8" text-anchor="middle">Real dashcam sample. Keep the 16:9 ratio.</text>
+</svg>

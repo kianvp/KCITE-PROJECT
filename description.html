@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Description — AEGIS-PX</title>
+<meta name="description" content="The AEGIS-PX pipeline, datasets, response layer and an interactive degradation lab.">
+<meta name="color-scheme" content="dark">
+<script>document.documentElement.classList.add('js');</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+  @theme {
+    /* !! keep in sync with :root in assets/css/base.css !! */
+    --color-ink:     #06090F;
+    --color-surface: #0D141D;
+    --color-surface2:#141E2A;
+    --color-fg:      #E9EFF5;
+    --color-muted:   #9DAAB8;
+    --color-sensor:  #2FE6D6;
+    --color-alert:   #FFB020;
+    --color-fail:    #FF5A6E;
+    --color-safe:    #5BE49B;
+    --color-line:    rgba(233,239,245,0.10);
+    --font-display:  "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --font-sans:     "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-mono:     "IBM Plex Mono", ui-monospace, monospace;
+  }
+</style>
+
+<link rel="stylesheet" href="assets/css/base.css">
+
+<!-- Page-specific styles for the lab controls (range slider + radio pills). -->
+<style>
+  .lab-fieldset { border: 0; padding: 0; margin: 0; }
+  .lab-legend {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 0 .5rem;
+  }
+  .pill-group { display: flex; flex-wrap: wrap; gap: .45rem; }
+  .pill { position: relative; }
+  .pill input {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; margin: 0;
+  }
+  .pill span {
+    display: inline-block;
+    padding: .5rem .95rem;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(233,239,245,.04);
+    color: var(--muted);
+    font-size: .87rem;
+    font-weight: 500;
+    min-height: 40px;
+    line-height: 26px;
+    transition: all .2s cubic-bezier(.16,1,.3,1);
+  }
+  .pill input:checked + span {
+    background: rgba(47,230,214,.14);
+    border-color: rgba(47,230,214,.55);
+    color: var(--fg);
+  }
+  /* Focus has to be visible even though the real input is transparent. */
+  .pill input:focus-visible + span {
+    outline: 3px solid var(--alert);
+    outline-offset: 3px;
+  }
+  .pill input:hover + span { background: rgba(233,239,245,.09); color: var(--fg); }
+
+  .range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--safe), var(--alert) 55%, var(--fail));
+    outline-offset: 6px;
+    cursor: pointer;
+  }
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--fg);
+    border: 3px solid var(--ink);
+    box-shadow: 0 4px 14px rgba(0,0,0,.6);
+    cursor: grab;
+  }
+  .range::-moz-range-thumb {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--fg);
+    border: 3px solid var(--ink);
+    cursor: grab;
+  }
+
+  /* Pipeline steps: an ordered list that reads as a diagram. */
+  .pipe { list-style: none; padding: 0; margin: 0; display: grid; gap: .75rem; }
+  .pipe li {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: start;
+    padding: 1rem 1.1rem;
+    background: linear-gradient(180deg, rgba(20,30,42,.9), rgba(13,20,29,.9));
+    border: 1px solid var(--line);
+    border-radius: 16px;
+  }
+  .pipe li::after {
+    content: "↓";
+    position: absolute;
+    left: 2.05rem;
+    bottom: -1.35rem;
+    color: var(--sensor);
+    font-size: 1rem;
+    z-index: 1;
+  }
+  .pipe li:last-child::after { content: none; }
+  .pipe .n {
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    color: var(--ink);
+    background: var(--sensor);
+    border-radius: 8px;
+    width: 1.9rem; height: 1.9rem;
+    display: grid; place-items: center;
+    font-weight: 600;
+  }
+  @media (min-width: 900px) {
+    .pipe { grid-template-columns: repeat(5, 1fr); gap: 1.6rem; }
+    .pipe li { grid-template-columns: 1fr; }
+    .pipe li::after {
+      content: "→";
+      left: auto; right: -1.32rem; bottom: auto; top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.16/dist/lenis.min.js" defer></script>
+<script src="assets/js/site.js" defer></script>
+<script src="assets/js/lab.js" defer></script>
+</head>
+
+<body class="bg-ink text-fg font-sans antialiased">
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<!-- ══ HEADER ═══════════════════════════════════════════════════════════ -->
+<header class="site-header" data-header>
+  <!-- Reading-progress hairline; site.js animates scaleX if ScrollTrigger loads -->
+  <div data-progress aria-hidden="true"
+       style="position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--sensor);
+              transform:scaleX(0);transform-origin:0 50%"></div>
+
+  <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>AEGIS<span style="color:var(--sensor)">-</span>PX</span>
+    </a>
+
+    <nav aria-label="Primary" class="hidden md:block">
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html">Home</a></li>
+        <li><a class="nav-link" href="about.html">About</a></li>
+        <li><a class="nav-link" href="description.html" aria-current="page">Description</a></li>
+        <li><a class="nav-link" href="docs.html">Docs</a></li>
+        <li><a class="nav-link" href="made-with.html">Made With</a></li>
+      </ul>
+    </nav>
+
+    <button class="nav-toggle md:hidden" type="button" data-nav-toggle
+            aria-expanded="false" aria-controls="mobile-nav" aria-label="Open main menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M3 6h14M3 10h14M3 14h14"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="mobile-nav md:hidden" id="mobile-nav" data-nav-panel hidden>
+    <ul class="nav-list" style="flex-direction:column;gap:.2rem">
+      <li><a class="nav-link" href="index.html">Home</a></li>
+      <li><a class="nav-link" href="about.html">About</a></li>
+      <li><a class="nav-link" href="description.html" aria-current="page">Description</a></li>
+      <li><a class="nav-link" href="docs.html">Docs</a></li>
+      <li><a class="nav-link" href="made-with.html">Made With</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ══ INTRO ══════════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 pt-12 pb-6 sm:px-8 lg:pt-20" aria-labelledby="desc-title">
+    <p class="chip chip-sensor mb-5"><span aria-hidden="true">◆</span> Technical description</p>
+
+    <h1 id="desc-title" class="font-display font-bold tracking-tight"
+        style="font-size:clamp(2.4rem,6vw,4.25rem);line-height:1.02;max-width:20ch">
+      How AEGIS-PX decides a frame has gone wrong
+    </h1>
+
+    <p class="mt-6 max-w-2xl text-lg" style="color:var(--muted)">
+      A pipeline description, the data it was validated against, and a lab where
+      you can degrade the input yourself and watch confidence refuse to move.
+    </p>
+  </section>
+
+  <!-- ══ PIPELINE ═══════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8" aria-labelledby="pipe-title">
+    <h2 id="pipe-title" data-split class="font-display font-bold tracking-tight reveal"
+        style="font-size:clamp(1.9rem,4.4vw,3rem)">
+      The pipeline, end to end
+    </h2>
+
+    <p class="mt-4 max-w-2xl reveal" data-delay="60" style="color:var(--muted)">
+      Five stages. Nothing in this chain asks the detector how confident it is.
+    </p>
+
+    <!-- An ordered list, so it is a real sequence for screen readers too --->
+    <ol class="pipe mt-10">
+      <li class="reveal" data-delay="0">
+        <span class="n" aria-hidden="true">1</span>
+        <div>
+          <h3 class="font-display text-base">Frame in</h3>
+          <p class="mt-1.5 text-sm" style="color:var(--muted)">
+            A single RGB frame from dashcam video, or a rendered CARLA frame.
+          </p>
+        </div>
+      </li>
+      <li class="reveal" data-delay="90">
+        <span class="n" aria-hidden="true">2</span>
+        <div>
+          <h3 class="font-display text-base">Detect</h3>
+          <p class="mt-1.5 text-sm" style="color:var(--muted)">
+            A standard object detector runs unchanged and produces boxes plus its
+            usual confidence scores.
+          </p>
+        </div>
+      </li>
+      <li class="reveal" data-delay="180">
+        <span class="n" aria-hidden="true">3</span>
+        <div>
+          <h3 class="font-display text-base">Extract</h3>
+          <p class="mt-1.5 text-sm" style="color:var(--muted)">
+            Activations are tapped from intermediate convolutional layers while
+            the forward pass runs.
+          </p>
+        </div>
+      </li>
+      <li class="reveal" data-delay="270">
+        <span class="n" aria-hidden="true">4</span>
+        <div>
+          <h3 class="font-display text-base">Predict</h3>
+          <p class="mt-1.5 text-sm" style="color:var(--muted)">
+            A lightweight classifier pools those activations into one failure
+            likelihood for this frame.
+          </p>
+        </div>
+      </li>
+      <li class="reveal" data-delay="360">
+        <span class="n" aria-hidden="true">5</span>
+        <div>
+          <h3 class="font-display text-base">Respond</h3>
+          <p class="mt-1.5 text-sm" style="color:var(--muted)">
+            The mode-aware response layer picks a fallback appropriate to the
+            current autonomy level.
+          </p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ══ DEGRADATION LAB ════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8" aria-labelledby="lab-title">
+    <div class="max-w-3xl">
+      <p class="chip chip-fail mb-5 reveal"><span aria-hidden="true">■</span> Interactive</p>
+      <h2 id="lab-title" data-split class="font-display font-bold tracking-tight reveal"
+          style="font-size:clamp(1.9rem,4.4vw,3rem)">
+        The degradation lab
+      </h2>
+      <p class="mt-4 reveal" data-delay="60" style="color:var(--muted)">
+        Push severity up and watch the two numbers disagree. The detector's
+        confidence barely flinches; the AEGIS-PX risk estimate tracks the damage.
+        That disagreement is the entire research thesis.
+      </p>
+    </div>
+
+    <div class="mt-10 grid gap-6 lg:grid-cols-[1.35fr_1fr]">
+      <!-- ── Canvas + readouts ───────────────────────────────────────── -->
+      <div class="panel p-4 sm:p-5 reveal">
+        <canvas id="lab-canvas"
+                role="img" aria-describedby="lab-canvas-desc"
+                style="width:100%;aspect-ratio:16/9;background:#0A1018;border:1px solid var(--line);border-radius:14px"
+                width="1200" height="675"></canvas>
+
+        <!-- Text description of the canvas, updated live by lab.js -->
+        <p id="lab-canvas-desc" class="sr-only">
+          Synthetic road view with a detection box drawn around the vehicle ahead.
+        </p>
+
+        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+          <!-- Detector confidence: stays high and green -->
+          <div class="hud">
+            <div class="hud-row">
+              <span class="hud-label">Detector confidence</span>
+              <span aria-hidden="true" style="color:var(--safe)">●</span>
+            </div>
+            <div class="hud-value" id="lab-confidence" style="color:var(--safe)">98.6%</div>
+            <div class="meter"><span id="lab-confidence-bar" style="width:98%;background:var(--safe)"></span></div>
+          </div>
+
+          <!-- AEGIS risk: climbs with severity -->
+          <div class="hud">
+            <div class="hud-row">
+              <span class="hud-label">AEGIS failure risk</span>
+              <span aria-hidden="true" aria-hidden="true">◆</span>
+            </div>
+            <div class="hud-value" id="lab-risk" style="color:var(--safe)">33%</div>
+            <div class="meter"><span id="lab-risk-bar" style="width:33%;background:var(--safe)"></span></div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-center gap-3">
+          <span class="status-pill status-ok" id="lab-status">
+            <span aria-hidden="true">●</span> Monitoring
+          </span>
+          <p class="text-sm" id="lab-status-text" style="color:var(--muted)">
+            The detector is behaving normally.
+          </p>
+        </div>
+      </div>
+
+      <!-- ── Controls ────────────────────────────────────────────────── -->
+      <div class="panel p-5 reveal" data-delay="90">
+        <h3 class="font-display text-lg">Controls</h3>
+
+        <!-- severity slider -->
+        <div class="mt-5">
+          <label for="lab-severity" class="lab-legend" style="display:block;padding-bottom:.7rem">
+            Degradation severity
+          </label>
+          <input type="range" id="lab-severity" class="range"
+                 min="0" max="100" step="1" value="45"
+                 aria-describedby="lab-severity-out">
+          <p class="mt-2 flex items-baseline justify-between text-sm" style="color:var(--muted)">
+            <span>Clear</span>
+            <output id="lab-severity-out" for="lab-severity"
+                    style="font-family:var(--font-mono);color:var(--fg)">45%</output>
+            <span>Severe</span>
+          </p>
+        </div>
+
+        <!-- condition radios -->
+        <fieldset class="lab-fieldset mt-6">
+          <legend class="lab-legend">Condition</legend>
+          <div class="pill-group">
+            <label class="pill">
+              <input type="radio" name="lab-condition" value="fog" checked>
+              <span>Fog</span>
+            </label>
+            <label class="pill">
+              <input type="radio" name="lab-condition" value="glare">
+              <span>Glare</span>
+            </label>
+            <label class="pill">
+              <input type="radio" name="lab-condition" value="blur">
+              <span>Motion blur</span>
+            </label>
+            <label class="pill">
+              <input type="radio" name="lab-condition" value="night">
+              <span>Night rain</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- autonomy level radios -->
+        <fieldset class="lab-fieldset mt-6">
+          <legend class="lab-legend">Autonomy level</legend>
+          <div class="pill-group">
+            <label class="pill">
+              <input type="radio" name="lab-level" value="2">
+              <span>L2</span>
+            </label>
+            <label class="pill">
+              <input type="radio" name="lab-level" value="3">
+              <span>L3</span>
+            </label>
+            <label class="pill">
+              <input type="radio" name="lab-level" value="4" checked>
+              <span>L4</span>
+            </label>
+            <label class="pill">
+              <input type="radio" name="lab-level" value="5">
+              <span>L5</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- resulting action -->
+        <div class="mt-6 rounded-2xl border p-4" style="border-color:var(--line);background:rgba(6,9,15,.6)">
+          <p class="lab-legend" style="padding-bottom:.4rem">Response layer output</p>
+          <p id="lab-response" class="text-sm" style="color:var(--fg)">
+            Level 4 — full self-drive, nominal.
+          </p>
+        </div>
+
+        <button type="button" class="btn btn-ghost mt-5 w-full" id="lab-reset">
+          Reset lab
+        </button>
+
+        <!-- Single polite live region: all readouts announced together ----- -->
+        <div id="lab-live" class="sr-only" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ DATASETS ═══════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8" aria-labelledby="data-title">
+    <div class="max-w-3xl">
+      <p class="chip chip-sensor mb-5 reveal"><span aria-hidden="true">◆</span> Validation</p>
+      <h2 id="data-title" data-split class="font-display font-bold tracking-tight reveal"
+          style="font-size:clamp(1.9rem,4.4vw,3rem)">
+        Validated on real footage and simulation
+      </h2>
+      <p class="mt-4 reveal" data-delay="60" style="color:var(--muted)">
+        Two sources, because each covers what the other cannot: real-world messiness
+        you cannot label perfectly, and simulation where every frame's ground truth
+        is exact by construction.
+      </p>
+    </div>
+
+    <div class="mt-10 grid gap-6 md:grid-cols-2">
+      <figure class="reveal">
+        <div class="ph-img">
+          <img src="assets/images/dataset-bdd100k.svg"
+               alt="Placeholder for a BDD100K dashcam frame showing a road view used to validate the detector."
+               width="1200" height="675" loading="lazy">
+        </div>
+        <figcaption class="caption">
+          <strong style="color:var(--fg)">BDD100K</strong> — real dashcam video
+          across daylight, night, rain and glare. Supplies authentic sensor noise
+          and the long tail of odd conditions.
+        </figcaption>
+      </figure>
+
+      <figure class="reveal" data-delay="110">
+        <div class="ph-img">
+          <img src="assets/images/dataset-carla.svg"
+               alt="Placeholder for a CARLA simulation frame with ground-truth bounding boxes around a vehicle."
+               width="1200" height="675" loading="lazy">
+        </div>
+        <figcaption class="caption">
+          <strong style="color:var(--fg)">CARLA</strong> — controlled simulation
+          with exact ground truth, adjustable weather and repeatable scenarios.
+          Every condition can be swept precisely.
+        </figcaption>
+      </figure>
+    </div>
+
+    <div class="mt-8 grid gap-4 sm:grid-cols-4">
+      <div class="card reveal"><p class="card-index">CONDITION 01</p><p class="mt-2 font-display text-lg">Fog</p></div>
+      <div class="card reveal" data-delay="80"><p class="card-index">CONDITION 02</p><p class="mt-2 font-display text-lg">Glare</p></div>
+      <div class="card reveal" data-delay="160"><p class="card-index">CONDITION 03</p><p class="mt-2 font-display text-lg">Motion blur</p></div>
+      <div class="card reveal" data-delay="240"><p class="card-index">CONDITION 04</p><p class="mt-2 font-display text-lg">Night rain</p></div>
+    </div>
+  </section>
+
+  <!-- ══ RESPONSE LAYER ═════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8" aria-labelledby="resp-title">
+    <div class="max-w-3xl">
+      <p class="chip chip-alert mb-5 reveal"><span aria-hidden="true">▲</span> Response layer</p>
+      <h2 id="resp-title" data-split class="font-display font-bold tracking-tight reveal"
+          style="font-size:clamp(1.9rem,4.4vw,3rem)">
+        Mode-aware fallbacks
+      </h2>
+      <p class="mt-4 reveal" data-delay="60" style="color:var(--muted)">
+        The same risk score means two different things depending on whether a
+        human is available to receive it.
+      </p>
+    </div>
+
+    <div class="mt-10 grid gap-5 lg:grid-cols-2">
+      <!-- L2–3 -->
+      <article class="card reveal">
+        <div class="flex items-center justify-between gap-3">
+          <p class="card-index">LEVEL 2–3 · DRIVER HANDBACK</p>
+          <span class="chip chip-alert">Human available</span>
+        </div>
+        <h3 class="mt-4 font-display text-2xl">Hand control back</h3>
+        <ol class="mt-4 grid gap-3 text-sm" style="color:var(--muted)">
+          <li style="display:flex;gap:.7rem">
+            <span style="font-family:var(--font-mono);color:var(--alert)">01</span>
+            Risk crosses the escalation threshold.
+          </li>
+          <li style="display:flex;gap:.7rem">
+            <span style="font-family:var(--font-mono);color:var(--alert)">02</span>
+            Audible + haptic takeover request, with the reason shown.
+          </li>
+          <li style="display:flex;gap:.7rem">
+            <span style="font-family:var(--font-mono);color:var(--alert)">03</span>
+            Time-to-handover window, escalating in urgency.
+          </li>
+          <li style="display:flex;gap:.7rem">
+            <span style="font-family:var(--font-mono);color:var(--alert)">04</span>
+            If nobody responds → controlled minimum-risk stop.
+          </li>
+        </ol>
+      </article>
+
+      <!-- L4–5 -->
+      <article class="card reveal" data-delay="110">
+        <div class="flex items-center justify-between gap-3">
+          <p class="card-index" style="color:var(--safe)">LEVEL 4–5 · SAFE DEGRADATION</p>
+          <span class="chip chip-safe">No human</span>
+        </div>
+        <h3 class="mt-4 font-display text-2xl">Degrade safely, alone</h3>
+        <ol class="mt-4 grid gap-3 text-sm" style="color:var(--muted)">
+          <li style="display:flex;gap:.7rem">
+            <span style="font-family:var(--font-mono);color:var(--safe)">01</span>
+            Reduce speed into an envelope where stopping distance still fits visibility.
+          </li>
+          <li style="display:flex;gap:.7rem">
+            <span style="font-family:var(--font-mono);color:var(--safe)">02</span>
+            Reweight sensors — down-weight the degraded camera, up-weight radar/lidar.
+          </li>
+          <li style="display:flex;gap:.7rem">
+            <span style="font-family:var(--font-mono);color:var(--safe)">03</span>
+            Replan toward the shoulder rather than stopping in a live lane.
+          </li>
+          <li style="display:flex;gap:.7rem">
+            <span style="font-family:var(--font-mono);color:var(--safe)">04</span>
+            Execute a minimal-risk stop and report the event.
+          </li>
+        </ol>
+      </article>
+    </div>
+  </section>
+
+  <!-- ══ METRICS ════════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8" aria-labelledby="metrics-title">
+    <h2 id="metrics-title" data-split class="font-display font-bold tracking-tight reveal"
+        style="font-size:clamp(1.9rem,4.4vw,3rem)">
+      Prototype measurements
+    </h2>
+
+    <p class="mt-4 max-w-2xl reveal" style="color:var(--muted)">
+      Illustrative figures from the current prototype build, included to show how
+      results are reported — not certified performance.
+    </p>
+
+    <div class="mt-6 overflow-x-auto reveal">
+      <table class="w-full text-left text-sm" style="min-width:560px">
+        <caption class="sr-only">Prototype measurements by weather condition</caption>
+        <thead>
+          <tr style="color:var(--muted);border-bottom:1px solid var(--line)">
+            <th scope="col" class="py-3 pr-4 font-medium">Condition</th>
+            <th scope="col" class="py-3 pr-4 font-medium">Detector confidence</th>
+            <th scope="col" class="py-3 pr-4 font-medium">AEGIS risk</th>
+            <th scope="col" class="py-3 font-medium">Failures caught</th>
+          </tr>
+        </thead>
+        <tbody style="font-family:var(--font-mono)">
+          <tr style="border-bottom:1px solid var(--line)">
+            <th scope="row" class="py-3 pr-4 font-medium" style="color:var(--fg)">Clear</th>
+            <td class="py-3 pr-4" style="color:var(--safe)">99.4%</td>
+            <td class="py-3 pr-4" style="color:var(--safe)">6%</td>
+            <td class="py-3" style="color:var(--muted)">baseline</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--line)">
+            <th scope="row" class="py-3 pr-4 font-medium" style="color:var(--fg)">Fog</th>
+            <td class="py-3 pr-4" style="color:var(--safe)">98.9%</td>
+            <td class="py-3 pr-4" style="color:var(--alert)">61%</td>
+            <td class="py-3" style="color:var(--fg)">84%</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--line)">
+            <th scope="row" class="py-3 pr-4 font-medium" style="color:var(--fg)">Glare</th>
+            <td class="py-3 pr-4" style="color:var(--safe)">99.1%</td>
+            <td class="py-3 pr-4" style="color:var(--alert)">57%</td>
+            <td class="py-3" style="color:var(--fg)">79%</td>
+          </tr>
+          <tr>
+            <th scope="row" class="py-3 pr-4 font-medium" style="color:var(--fg)">Motion blur</th>
+            <td class="py-3 pr-4" style="color:var(--safe)">98.7%</td>
+            <td class="py-3 pr-4" style="color:var(--fail)">72%</td>
+            <td class="py-3" style="color:var(--fg)">88%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="caption reveal" style="max-width:70ch">
+      Read the middle two columns together: confidence stays pinned near 99% in
+      every row while the risk estimate moves by an order of magnitude.
+    </p>
+  </section>
+
+  <!-- ══ LIMITS + CTA ═══════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8">
+    <div class="panel reveal px-6 py-8 sm:px-9"
+         style="border-color:rgba(255,176,32,.35);background:linear-gradient(180deg,rgba(255,176,32,.08),rgba(13,20,29,.92))">
+      <span class="chip chip-alert"><span aria-hidden="true">⚠</span> Read this first</span>
+      <p class="mt-4 max-w-3xl text-sm" style="color:var(--muted)">
+        Research prototype, built as a high-school independent research project.
+        Not tested for real-world deployment or safety certification. The
+        secondary classifier is only as good as the conditions it was trained on,
+        and degraded-condition detection remains an open problem — treat every
+        figure here as experimental.
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a class="btn btn-primary" href="docs.html" data-magnetic>Read the docs</a>
+        <a class="btn btn-ghost" href="about.html" data-magnetic>Back to about</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══ FOOTER ═══════════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr]">
+    <div>
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>AEGIS<span style="color:var(--sensor)">-</span>PX</span>
+      </a>
+      <p class="mt-4 text-sm" style="color:var(--muted);max-width:34ch">
+        Detecting silent perception failures in autonomous driving by reading a
+        model's internal state instead of trusting its confidence.
+      </p>
+      <p class="chip chip-alert mt-5"><span aria-hidden="true">⚠</span> Research prototype</p>
+    </div>
+
+    <nav aria-label="Footer">
+      <h2 class="font-display text-sm uppercase tracking-widest" style="color:var(--muted)">Pages</h2>
+      <ul class="mt-4 grid gap-2 text-sm">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="description.html" aria-current="page">Description</a></li>
+        <li><a href="docs.html">Docs</a></li>
+        <li><a href="made-with.html">Made With</a></li>
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="font-display text-sm uppercase tracking-widest" style="color:var(--muted)">Notice</h2>
+      <p class="mt-4 text-sm" style="color:var(--muted)">
+        High-school independent research project. Not tested for real-world
+        deployment or safety certification.
+      </p>
+    </div>
+  </div>
+
+  <div class="border-t border-line py-6 text-center text-sm" style="color:var(--muted)">
+    © <span data-year>2026</span> AEGIS-PX · Built as an independent research prototype
+  </div>
+</footer>
+
+</body>
+</html>

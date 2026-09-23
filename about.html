@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About — AEGIS-PX</title>
+<meta name="description" content="What AEGIS-PX does, the silent perception failure problem it solves, and who it is for.">
+<meta name="color-scheme" content="dark">
+<script>document.documentElement.classList.add('js');</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+  @theme {
+    /* !! keep in sync with :root in assets/css/base.css !! */
+    --color-ink:     #06090F;
+    --color-surface: #0D141D;
+    --color-surface2:#141E2A;
+    --color-fg:      #E9EFF5;
+    --color-muted:   #9DAAB8;
+    --color-sensor:  #2FE6D6;
+    --color-alert:   #FFB020;
+    --color-fail:    #FF5A6E;
+    --color-safe:    #5BE49B;
+    --color-line:    rgba(233,239,245,0.10);
+    --font-display:  "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --font-sans:     "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-mono:     "IBM Plex Mono", ui-monospace, monospace;
+  }
+</style>
+
+<link rel="stylesheet" href="assets/css/base.css">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.16/dist/lenis.min.js" defer></script>
+<script src="assets/js/site.js" defer></script>
+</head>
+
+<body class="bg-ink text-fg font-sans antialiased">
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<!-- ══ HEADER (same on every page; only aria-current changes) ═══════════ -->
+<header class="site-header" data-header>
+  <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>AEGIS<span style="color:var(--sensor)">-</span>PX</span>
+    </a>
+
+    <nav aria-label="Primary" class="hidden md:block">
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html">Home</a></li>
+        <li><a class="nav-link" href="about.html" aria-current="page">About</a></li>
+        <li><a class="nav-link" href="description.html">Description</a></li>
+        <li><a class="nav-link" href="docs.html">Docs</a></li>
+        <li><a class="nav-link" href="made-with.html">Made With</a></li>
+      </ul>
+    </nav>
+
+    <button class="nav-toggle md:hidden" type="button" data-nav-toggle
+            aria-expanded="false" aria-controls="mobile-nav" aria-label="Open main menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M3 6h14M3 10h14M3 14h14"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="mobile-nav md:hidden" id="mobile-nav" data-nav-panel hidden>
+    <ul class="nav-list" style="flex-direction:column;gap:.2rem">
+      <li><a class="nav-link" href="index.html">Home</a></li>
+      <li><a class="nav-link" href="about.html" aria-current="page">About</a></li>
+      <li><a class="nav-link" href="description.html">Description</a></li>
+      <li><a class="nav-link" href="docs.html">Docs</a></li>
+      <li><a class="nav-link" href="made-with.html">Made With</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ══ PAGE INTRO ═════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 pt-12 pb-6 sm:px-8 lg:pt-20" aria-labelledby="about-title">
+    <p class="chip chip-sensor mb-5"><span aria-hidden="true">◆</span> About the project</p>
+
+    <h1 id="about-title" class="font-display font-bold tracking-tight"
+        style="font-size:clamp(2.4rem,6vw,4.25rem);line-height:1.02;max-width:18ch">
+      Catching a mistake the car doesn't know it made.
+    </h1>
+
+    <p class="mt-6 max-w-2xl text-lg reveal" style="color:var(--muted)">
+      AEGIS-PX is an independent research prototype that detects
+      <strong style="color:var(--fg)">silent perception failures</strong> in
+      autonomous driving — the frames where an object detector is wrong, certain,
+      and completely quiet about it.
+    </p>
+  </section>
+
+  <!-- ══ WHAT IT DOES ═══════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16" aria-labelledby="does-title">
+    <div class="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
+      <div class="prose">
+        <h2 id="does-title" data-split class="reveal">What it does</h2>
+
+        <p class="reveal" data-delay="60">
+          Every object detector outputs a confidence score. Teams use it as a
+          proxy for trust: high confidence means act, low confidence means doubt.
+          That proxy breaks down the moment degraded weather makes the model
+          <strong>wrong in a way it cannot feel</strong>.
+        </p>
+
+        <p class="reveal" data-delay="100">
+          AEGIS-PX ignores that score. Instead it taps the detector's
+          <strong>internal layer activations</strong> while the model runs, feeds
+          them into a small secondary classifier, and predicts the probability
+          that this frame is actually a failure. The prediction is validated
+          against ground truth from real dashcam footage and simulation, not
+          against the model's own opinion of itself.
+        </p>
+
+        <p class="reveal" data-delay="140">
+          When that risk crosses a threshold, a <strong>mode-aware response
+          layer</strong> chooses an appropriate fallback — because handing control
+          to a human and saving yourself without one are not the same problem.
+        </p>
+
+        <h3 class="reveal">The three stages</h3>
+        <ol class="reveal">
+          <li><strong>Extract</strong> — read feature maps from intermediate layers at inference time.</li>
+          <li><strong>Predict</strong> — a lightweight classifier turns activations into a failure likelihood.</li>
+          <li><strong>Respond</strong> — escalate to the driver, or degrade safely on board.</li>
+        </ol>
+      </div>
+
+      <!-- Image placeholder: swap src when you have a real diagram --------- -->
+      <figure class="reveal" data-parallax="30">
+        <div class="ph-img">
+          <img src="assets/images/about-system.svg"
+               alt="Diagram placeholder showing three connected stages: sensor input, the AEGIS-PX risk classifier, and the response layer."
+               width="1200" height="750" loading="lazy">
+        </div>
+        <figcaption class="caption">
+          Placeholder — drop your system overview into
+          <code style="font-family:var(--font-mono)">assets/images/about-system.svg</code>.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ══ THE PROBLEM ════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16" aria-labelledby="problem-title">
+    <div class="max-w-3xl">
+      <p class="chip chip-fail mb-5 reveal"><span aria-hidden="true">■</span> The problem</p>
+      <h2 id="problem-title" data-split class="font-display font-bold tracking-tight reveal"
+          style="font-size:clamp(1.9rem,4.4vw,3rem)">
+        Failures nobody gets warned about
+      </h2>
+    </div>
+
+    <div class="mt-10 grid gap-5 md:grid-cols-3">
+      <article class="card reveal" data-delay="0">
+        <p class="card-index">SILENT</p>
+        <h3 class="mt-3 font-display text-xl">No warning is raised</h3>
+        <p class="mt-3 text-sm" style="color:var(--muted)">
+          Confidence stays high, so every downstream safety check passes. The
+          failure only becomes visible after an incident — if it ever does.
+        </p>
+      </article>
+
+      <article class="card reveal" data-delay="110">
+        <p class="card-index" style="color:var(--alert)">CONDITIONAL</p>
+        <h3 class="mt-3 font-display text-xl">Weather is the trigger</h3>
+        <p class="mt-3 text-sm" style="color:var(--muted)">
+          Fog, glare, rain and motion blur degrade the image gradually. There is
+          no crash, no missing frame, no obvious signal to react to.
+        </p>
+      </article>
+
+      <article class="card reveal" data-delay="220">
+        <p class="card-index" style="color:var(--fail)">UNOBSERVED</p>
+        <h3 class="mt-3 font-display text-xl">Confidence ≠ correctness</h3>
+        <p class="mt-3 text-sm" style="color:var(--muted)">
+          A model can be 99% confident and entirely wrong. Using its confidence
+          to guard against its own errors is circular.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ══ WHO IT'S FOR ═══════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16" aria-labelledby="who-title">
+    <div class="grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-14">
+      <div>
+        <p class="chip chip-alert mb-5 reveal"><span aria-hidden="true">▲</span> Audience</p>
+        <h2 id="who-title" data-split class="font-display font-bold tracking-tight reveal"
+            style="font-size:clamp(1.9rem,4.4vw,3rem)">
+          Who it's for
+        </h2>
+
+        <div class="mt-8 grid gap-4">
+          <article class="card reveal" data-delay="0">
+            <p class="card-index">01</p>
+            <h3 class="mt-2 font-display text-lg">Autonomy &amp; safety engineers</h3>
+            <p class="mt-2 text-sm" style="color:var(--muted)">
+              Anyone building a monitoring layer who wants a failure signal that
+              does not come from the model policing itself.
+            </p>
+          </article>
+
+          <article class="card reveal" data-delay="100">
+            <p class="card-index">02</p>
+            <h3 class="mt-2 font-display text-lg">ML &amp; safety researchers</h3>
+            <p class="mt-2 text-sm" style="color:var(--muted)">
+              People studying epistemic uncertainty, out-of-distribution detection
+              and silent failures in perception stacks.
+            </p>
+          </article>
+
+          <article class="card reveal" data-delay="200">
+            <p class="card-index">03</p>
+            <h3 class="mt-2 font-display text-lg">Students &amp; educators</h3>
+            <p class="mt-2 text-sm" style="color:var(--muted)">
+              A compact, readable example of taking a real research question from
+              dataset to demo — including its limitations.
+            </p>
+          </article>
+        </div>
+      </div>
+
+      <figure class="reveal" data-parallax="40" style="align-self:center">
+        <div class="ph-img">
+          <img src="assets/images/about-audience.svg"
+               alt="Photo placeholder representing the people AEGIS-PX is built for: a researcher reviewing perception output."
+               width="900" height="900" loading="lazy">
+        </div>
+        <figcaption class="caption">
+          Placeholder for a portrait, test-setup photo or team image.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ══ LIMITATIONS (stated plainly) ═══════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8" aria-labelledby="limits-title">
+    <div class="panel reveal px-6 py-8 sm:px-9"
+         style="border-color:rgba(255,176,32,.35);background:linear-gradient(180deg,rgba(255,176,32,.08),rgba(13,20,29,.92))">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="chip chip-alert"><span aria-hidden="true">⚠</span> Status</span>
+        <h2 id="limits-title" class="font-display text-xl sm:text-2xl" style="margin:0">
+          Research prototype — not safety certified
+        </h2>
+      </div>
+      <p class="mt-4 max-w-3xl text-sm" style="color:var(--muted)">
+        This is a high-school independent research project. It has not been
+        tested for real-world deployment, has no safety certification, and must
+        not be used to make decisions about a real vehicle. The numbers shown on
+        this site are illustrative of the prototype's behaviour, not certified
+        performance figures. Nothing here is a substitute for a production ADAS
+        or autonomous driving system.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ CTA ════════════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8">
+    <div class="flex flex-wrap items-center justify-between gap-6">
+      <div>
+        <h2 class="font-display font-bold" style="font-size:clamp(1.5rem,3vw,2.1rem);margin:0">
+          See the pipeline in action.
+        </h2>
+        <p class="mt-2" style="color:var(--muted)">Includes an interactive degradation lab.</p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <a class="btn btn-primary" href="description.html" data-magnetic>Open description</a>
+        <a class="btn btn-ghost" href="docs.html" data-magnetic>Read the docs</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══ FOOTER ═══════════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr]">
+    <div>
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>AEGIS<span style="color:var(--sensor)">-</span>PX</span>
+      </a>
+      <p class="mt-4 text-sm" style="color:var(--muted);max-width:34ch">
+        Detecting silent perception failures in autonomous driving by reading a
+        model's internal state instead of trusting its confidence.
+      </p>
+      <p class="chip chip-alert mt-5"><span aria-hidden="true">⚠</span> Research prototype</p>
+    </div>
+
+    <nav aria-label="Footer">
+      <h2 class="font-display text-sm uppercase tracking-widest" style="color:var(--muted)">Pages</h2>
+      <ul class="mt-4 grid gap-2 text-sm">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html" aria-current="page">About</a></li>
+        <li><a href="description.html">Description</a></li>
+        <li><a href="docs.html">Docs</a></li>
+        <li><a href="made-with.html">Made With</a></li>
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="font-display text-sm uppercase tracking-widest" style="color:var(--muted)">Notice</h2>
+      <p class="mt-4 text-sm" style="color:var(--muted)">
+        High-school independent research project. Not tested for real-world
+        deployment or safety certification.
+      </p>
+    </div>
+  </div>
+
+  <div class="border-t border-line py-6 text-center text-sm" style="color:var(--muted)">
+    © <span data-year>2026</span> AEGIS-PX · Built as an independent research prototype
+  </div>
+</footer>
+
+</body>
+</html>

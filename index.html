@@ -1,47 +1,1215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KCITE-PROJECT</title>
-  <style>
-    :root {
-      --bg: #0b0b1a;
-      --surface: #1b1640;
-      --text: #f4f1ff;
-      --muted: #a9a3d6;
-      --accent-1: #ff4d8d;
-      --accent-2: #7c5cff;
-      --glow: #3ee6ff;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    * { box-sizing: border-box; }
+<!-- SEO / sharing -------------------------------------------------------- -->
+<title>AEGIS-PX — Catching the mistakes self-driving systems don't know they're making</title>
+<meta name="description" content="AEGIS-PX is a research prototype that detects silent perception failures in autonomous driving by reading a detector's internal layer activations instead of trusting its confidence score.">
+<meta name="color-scheme" content="dark">
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: radial-gradient(120% 120% at 50% 0%, var(--surface) 0%, var(--bg) 60%);
-      color: var(--text);
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
+<!-- This class lets CSS hide reveal-animated content ONLY when JS is alive,
+     so the page stays fully readable if JavaScript fails or is disabled. --->
+<script>document.documentElement.classList.add('js');</script>
 
-    main { text-align: center; padding: 2rem; }
+<!-- Fonts: Space Grotesk (display) + Inter (body) + IBM Plex Mono (data) --->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
-    h1 {
-      margin: 0 0 0.5rem;
-      font-size: clamp(2rem, 6vw, 4rem);
-      letter-spacing: -0.03em;
-    }
+<!-- Tailwind (CDN, no build step) + our theme tokens ----------------------- -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+  @theme {
+    /* !! keep in sync with :root in assets/css/base.css !! */
+    --color-ink:     #06090F;
+    --color-surface: #0D141D;
+    --color-surface2:#141E2A;
+    --color-fg:      #E9EFF5;
+    --color-muted:   #9DAAB8;
+    --color-sensor:  #2FE6D6;
+    --color-alert:   #FFB020;
+    --color-fail:    #FF5A6E;
+    --color-safe:    #5BE49B;
+    --color-line:    rgba(233,239,245,0.10);
+    --font-display:  "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --font-sans:     "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-mono:     "IBM Plex Mono", ui-monospace, monospace;
+  }
+</style>
 
-    p { margin: 0; color: var(--muted); }
-  </style>
+<link rel="stylesheet" href="assets/css/base.css">
+
+<!-- Motion libraries (classic scripts so they work over file:// too) ------- -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.16/dist/lenis.min.js" defer></script>
+<script src="assets/js/site.js" defer></script>
+
+<!-- Import map: pins Three.js so every add-on resolves against the same r169
+     build (a version mismatch here is the classic "module not found").
+     MUST appear before any module script in the document. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
 </head>
-<body>
-  <main>
-    <h1>KCITE-PROJECT</h1>
-    <p>Ready for web development.</p>
-  </main>
+
+<body class="bg-ink text-fg font-sans antialiased">
+
+<!-- ── Skip link: first tab stop on every page (WCAG 2.4.1) ─────────────── -->
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<!-- ══ HEADER ═══════════════════════════════════════════════════════════ -->
+<header class="site-header" data-header>
+  <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>AEGIS<span style="color:var(--sensor)">-</span>PX</span>
+    </a>
+
+    <!-- Primary navigation: plain <a> links, no router ------------------- -->
+    <nav aria-label="Primary" class="hidden md:block">
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html" aria-current="page">Home</a></li>
+        <li><a class="nav-link" href="about.html">About</a></li>
+        <li><a class="nav-link" href="description.html">Description</a></li>
+        <li><a class="nav-link" href="docs.html">Docs</a></li>
+        <li><a class="nav-link" href="made-with.html">Made With</a></li>
+      </ul>
+    </nav>
+
+    <!-- Mobile disclosure button (44px target, aria-expanded, Esc closes) -->
+    <button class="nav-toggle md:hidden" type="button" data-nav-toggle
+            aria-expanded="false" aria-controls="mobile-nav" aria-label="Open main menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M3 6h14M3 10h14M3 14h14"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="mobile-nav md:hidden" id="mobile-nav" data-nav-panel hidden>
+    <ul class="nav-list" style="flex-direction:column;gap:.2rem">
+      <li><a class="nav-link" href="index.html" aria-current="page">Home</a></li>
+      <li><a class="nav-link" href="about.html">About</a></li>
+      <li><a class="nav-link" href="description.html">Description</a></li>
+      <li><a class="nav-link" href="docs.html">Docs</a></li>
+      <li><a class="nav-link" href="made-with.html">Made With</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ══ HERO + 3D CINEMATIC ════════════════════════════════════════════
+       Two columns on desktop (copy | stage), stacked on mobile.
+       The stage holds the WebGL canvas plus the HUD overlays. -->
+  <section aria-labelledby="hero-title" class="mx-auto max-w-7xl px-5 pt-10 pb-6 sm:px-8 lg:pt-16">
+    <div class="grid items-center gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-12">
+
+      <!-- ── Copy column ──────────────────────────────────────────────── -->
+      <div>
+        <p class="chip chip-sensor mb-6">
+          <span aria-hidden="true">◆</span> Research prototype · 2026
+        </p>
+
+        <h1 id="hero-title" class="font-display font-bold tracking-tight"
+            style="font-size:clamp(2.75rem,7vw,4.75rem);line-height:.98">
+          AEGIS<span style="color:var(--sensor)">-</span>PX
+        </h1>
+
+        <p class="mt-5 text-lg leading-relaxed sm:text-xl" style="color:var(--muted);max-width:34rem">
+          AEGIS-PX watches the driving model's own brain — catching the
+          <strong style="color:var(--fg)">confident mistakes</strong> its confidence
+          score will never report.
+        </p>
+
+        <!-- Status chips: never rely on colour alone, each carries text ---- -->
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="chip chip-alert"><span aria-hidden="true">⚠</span> Not safety certified</span>
+          <span class="chip">BDD100K + CARLA</span>
+          <span class="chip">Fog · Glare · Motion blur</span>
+        </div>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a class="btn btn-primary" href="description.html" data-magnetic>
+            See how it works
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 8h9M8 4l4 4-4 4"/>
+            </svg>
+          </a>
+          <a class="btn btn-ghost" href="docs.html" data-magnetic>Read the docs</a>
+        </div>
+      </div>
+
+      <!-- ── Stage column (WebGL) ─────────────────────────────────────── -->
+      <div class="relative overflow-hidden rounded-[24px] border border-line
+                  bg-surface aspect-[4/3] lg:aspect-auto lg:min-h-[600px]">
+
+        <!-- WebGL target. role="img" + aria-label = the canvas has a text
+             equivalent for screen readers (WCAG 1.1.1). -->
+        <canvas id="hero-canvas" class="absolute inset-0 h-full w-full"
+                role="img"
+                aria-label="Animated 3D scene: an autonomous car driving itself down a dark road. A sensor sweep scans a vehicle ahead, the camera pushes in close to the car, then fog rolls in and the detector's box on an obstacle turns red while the AEGIS-PX risk meter spikes."></canvas>
+
+        <!-- Shown until the renderer starts (and permanently if WebGL is
+             unavailable), so the panel is never an empty black box. -->
+        <div data-hero-fallback
+             class="absolute inset-0 grid place-items-center px-6 text-center">
+          <div>
+            <p class="chip chip-sensor mb-3">3D scene</p>
+            <p class="text-sm" style="color:var(--muted)">
+              Initialising the AEGIS-PX drive sequence…<br>
+              If this message stays, WebGL is unavailable in this browser.
+            </p>
+          </div>
+        </div>
+
+        <!-- Cinematic vignette so HUD text stays legible over the scene --- -->
+        <div class="pointer-events-none absolute inset-0"
+             style="background:radial-gradient(120% 90% at 50% 40%, transparent 40%, rgba(6,9,15,.78) 100%)"
+             aria-hidden="true"></div>
+
+        <!-- ── HUD ─────────────────────────────────────────────────────── -->
+        <div class="pointer-events-none absolute inset-0 flex flex-col justify-between p-4 sm:p-5">
+
+          <!-- Top: the two readouts that make the research point -->
+          <div class="flex flex-wrap gap-3">
+            <!-- Detector's own confidence: stays high and green -->
+            <div class="hud" style="min-width:190px;flex:1 1 190px" data-conf-panel>
+              <div class="hud-row">
+                <span class="hud-label">Detector confidence</span>
+                <span aria-hidden="true" style="color:var(--safe)">●</span>
+              </div>
+              <div class="hud-value" data-conf-value style="color:var(--safe)">98.7%</div>
+              <div class="meter"><span data-conf-bar style="width:98.7%;background:var(--safe)"></span></div>
+            </div>
+
+            <!-- AEGIS-PX predicted failure risk: climbs into red -->
+            <div class="hud" style="min-width:190px;flex:1 1 190px" data-risk-panel>
+              <div class="hud-row">
+                <span class="hud-label">AEGIS failure risk</span>
+                <span aria-hidden="true" style="color:var(--safe)">●</span>
+              </div>
+              <div class="hud-value" data-risk-value style="color:var(--safe)">5%</div>
+              <div class="meter"><span data-risk-bar style="width:5%;background:var(--safe)"></span></div>
+            </div>
+          </div>
+
+          <!-- Bottom: mode + steering state + status -->
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div class="hud flex items-center gap-3" style="width:auto">
+              <!-- Steering wheel: JS rotates this as the car steers -->
+              <svg data-steer-wheel width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"
+                   fill="none" stroke="#2FE6D6" stroke-width="2.4">
+                <circle cx="20" cy="20" r="15"/>
+                <circle cx="20" cy="20" r="4.5" fill="#2FE6D6" stroke="none"/>
+                <path d="M20 15.5V5M20 24.5V35M15.5 20H5M24.5 20H35"/>
+              </svg>
+              <span style="line-height:1.3">
+                <span class="hud-label" style="display:block">Control</span>
+                <strong style="font-family:var(--font-mono);font-size:.82rem;color:var(--sensor)"
+                        data-control-state>AI · STEERING</strong>
+              </span>
+            </div>
+
+            <!-- Status pill: glyph + text, so severity never depends on hue -->
+            <span class="status-pill status-ok" data-hero-status>
+              <span aria-hidden="true">●</span> Monitoring
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visible description of the animation, for everyone --------------- -->
+    <p class="caption mt-4 max-w-3xl">
+      The scene above is a scripted demonstration, not real sensor data: a car
+      under AI control, a detector box tracking the vehicle ahead, and the moment
+      degraded conditions make that detector confidently wrong.
+    </p>
+  </section>
+
+  <!-- ══ THE SILENT FAILURE ═════════════════════════════════════════════ -->
+  <section aria-labelledby="silent-title" class="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
+    <p class="chip chip-fail mb-5 reveal"><span aria-hidden="true">■</span> The problem</p>
+
+    <h2 id="silent-title" data-split
+        class="font-display font-bold tracking-tight reveal"
+        style="font-size:clamp(2rem,4.6vw,3.25rem);max-width:20ch">
+      A detector can be wrong and certain at the same time.
+    </h2>
+
+    <p class="mt-6 max-w-2xl reveal" data-delay="80" style="color:var(--muted)">
+      Fog, glare and motion blur don't always crash a perception model. More often
+      the model keeps returning a clean, high-confidence answer — so nothing upstream
+      ever triggers a warning. Those are <strong style="color:var(--fg)">silent
+      perception failures</strong>, and they are exactly what AEGIS-PX is built to catch.
+    </p>
+
+    <!-- Three stats. The contrast between them IS the argument. ----------- -->
+    <div class="mt-12 grid gap-5 sm:grid-cols-3">
+      <div class="card reveal" data-delay="0">
+        <p class="card-index">01 / DETECTOR</p>
+        <p class="hud-value mt-4" style="color:var(--safe);font-size:clamp(2.4rem,5vw,3.2rem)">99.1%</p>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          Confidence reported on a fog-obscured frame where the obstacle was
+          missed entirely.
+        </p>
+      </div>
+
+      <div class="card reveal" data-delay="110">
+        <p class="card-index" style="color:var(--fail)">02 / AEGIS-PX</p>
+        <p class="hud-value mt-4" style="color:var(--fail);font-size:clamp(2.4rem,5vw,3.2rem)">87%</p>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          Failure risk predicted from the detector's internal activations on the
+          very same frame.
+        </p>
+      </div>
+
+      <div class="card reveal" data-delay="220">
+        <p class="card-index" style="color:var(--alert)">03 / WARNING</p>
+        <p class="hud-value mt-4" style="color:var(--alert);font-size:clamp(2.4rem,5vw,3.2rem)">0</p>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          Warnings the original model's own confidence threshold would have
+          raised. That gap is the whole problem.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ THREE STAGES ═══════════════════════════════════════════════════ -->
+  <section aria-labelledby="how-title" class="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
+    <div class="max-w-3xl">
+      <p class="chip chip-sensor mb-5 reveal"><span aria-hidden="true">◆</span> How it works</p>
+      <h2 id="how-title" data-split class="font-display font-bold tracking-tight reveal"
+          style="font-size:clamp(2rem,4.6vw,3.25rem)">
+        Extract. Predict. Respond.
+      </h2>
+      <p class="mt-5 reveal" data-delay="80" style="color:var(--muted)">
+        Three stages, and none of them ask the detector how sure it feels.
+      </p>
+    </div>
+
+    <div class="mt-12 grid gap-5 md:grid-cols-3">
+      <article class="card reveal" data-delay="0">
+        <p class="card-index">01 — EXTRACT</p>
+        <h3 class="mt-3 font-display text-xl">Read the activations</h3>
+        <p class="mt-3 text-sm" style="color:var(--muted)">
+          Tap feature maps from intermediate layers of the object detector while it
+          runs. No retraining, no access to the detector's loss — just its internal
+          state, exposed at inference time.
+        </p>
+      </article>
+
+      <article class="card reveal" data-delay="110">
+        <p class="card-index">02 — PREDICT</p>
+        <h3 class="mt-3 font-display text-xl">Score the failure risk</h3>
+        <p class="mt-3 text-sm" style="color:var(--muted)">
+          A small secondary classifier turns those activations into a single
+          likelihood that this frame is a failure. Lightweight enough to run
+          alongside the main model.
+        </p>
+      </article>
+
+      <article class="card reveal" data-delay="220">
+        <p class="card-index">03 — RESPOND</p>
+        <h3 class="mt-3 font-display text-xl">Do the right thing</h3>
+        <p class="mt-3 text-sm" style="color:var(--muted)">
+          A mode-aware response layer picks the fallback that fits the autonomy
+          level: hand control back, or degrade safely on your own.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ══ TWO RESPONSE MODES ═════════════════════════════════════════════ -->
+  <section aria-labelledby="modes-title" class="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
+    <div class="max-w-3xl">
+      <p class="chip chip-alert mb-5 reveal"><span aria-hidden="true">▲</span> Response layer</p>
+      <h2 id="modes-title" data-split class="font-display font-bold tracking-tight reveal"
+          style="font-size:clamp(2rem,4.6vw,3.25rem)">
+        Two very different fallbacks.
+      </h2>
+      <p class="mt-5 reveal" data-delay="80" style="color:var(--muted)">
+        What "safe" means depends entirely on whether a human is expected to be
+        in the loop. AEGIS-PX implements both so the difference is concrete.
+      </p>
+    </div>
+
+    <div class="mt-12 grid gap-5 lg:grid-cols-2">
+      <!-- Level 2–3: a human is available, so ask for them -->
+      <article class="card reveal" data-delay="0">
+        <div class="flex items-center justify-between gap-3">
+          <p class="card-index">LEVEL 2–3</p>
+          <span class="chip chip-alert">Driver in loop</span>
+        </div>
+        <h3 class="mt-4 font-display text-2xl">Driver handback</h3>
+        <p class="mt-3 text-sm" style="color:var(--muted)">
+          Risk crosses the threshold → the system escalates to the human who is
+          supposed to be paying attention.
+        </p>
+        <ul class="mt-5 grid gap-2.5 text-sm" style="color:var(--muted)">
+          <li style="display:flex;gap:.6rem"><span style="color:var(--alert)" aria-hidden="true">▸</span> Audible + haptic takeover request</li>
+          <li style="display:flex;gap:.6rem"><span style="color:var(--alert)" aria-hidden="true">▸</span> Time-to-handover window with escalating urgency</li>
+          <li style="display:flex;gap:.6rem"><span style="color:var(--alert)" aria-hidden="true">▸</span> Fallback to a controlled stop if nobody responds</li>
+        </ul>
+      </article>
+
+      <!-- Level 4–5: nobody is available, so the car must save itself -->
+      <article class="card reveal" data-delay="120">
+        <div class="flex items-center justify-between gap-3">
+          <p class="card-index" style="color:var(--safe)">LEVEL 4–5</p>
+          <span class="chip chip-safe">No driver</span>
+        </div>
+        <h3 class="mt-4 font-display text-2xl">Autonomous safe-degradation</h3>
+        <p class="mt-3 text-sm" style="color:var(--muted)">
+          Nobody is available to take over, so the vehicle reduces its own
+          exposure until it can stop without creating a new hazard.
+        </p>
+        <ul class="mt-5 grid gap-2.5 text-sm" style="color:var(--muted)">
+          <li style="display:flex;gap:.6rem"><span style="color:var(--safe)" aria-hidden="true">▸</span> Speed reduction to a survivable envelope</li>
+          <li style="display:flex;gap:.6rem"><span style="color:var(--safe)" aria-hidden="true">▸</span> Sensor reweighting away from the degraded camera</li>
+          <li style="display:flex;gap:.6rem"><span style="color:var(--safe)" aria-hidden="true">▸</span> Minimal-risk stop at the road edge</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- ══ CTA ════════════════════════════════════════════════════════════ -->
+  <section aria-labelledby="cta-title" class="mx-auto max-w-7xl px-5 pb-8 sm:px-8">
+    <div class="panel reveal px-6 py-12 text-center sm:px-12"
+         style="background:radial-gradient(120% 140% at 50% 0%, rgba(47,230,214,.14), rgba(13,20,29,.9))">
+      <h2 id="cta-title" class="font-display font-bold tracking-tight"
+          style="font-size:clamp(1.8rem,4vw,2.75rem)">
+        Go deeper into the prototype.
+      </h2>
+      <p class="mx-auto mt-4 max-w-xl" style="color:var(--muted)">
+        Run the degradation lab, read the pipeline, or jump straight to the
+        documentation.
+      </p>
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        <a class="btn btn-primary" href="description.html" data-magnetic>Open the description</a>
+        <a class="btn btn-ghost" href="about.html" data-magnetic>Why it exists</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══ FOOTER ═══════════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr]">
+    <div>
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>AEGIS<span style="color:var(--sensor)">-</span>PX</span>
+      </a>
+      <p class="mt-4 text-sm" style="color:var(--muted);max-width:34ch">
+        Detecting silent perception failures in autonomous driving by reading a
+        model's internal state instead of trusting its confidence.
+      </p>
+      <p class="chip chip-alert mt-5"><span aria-hidden="true">⚠</span> Research prototype</p>
+    </div>
+
+    <nav aria-label="Footer">
+      <h2 class="font-display text-sm uppercase tracking-widest" style="color:var(--muted)">Pages</h2>
+      <ul class="mt-4 grid gap-2 text-sm">
+        <li><a href="index.html" aria-current="page">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="description.html">Description</a></li>
+        <li><a href="docs.html">Docs</a></li>
+        <li><a href="made-with.html">Made With</a></li>
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="font-display text-sm uppercase tracking-widest" style="color:var(--muted)">Notice</h2>
+      <p class="mt-4 text-sm" style="color:var(--muted)">
+        High-school independent research project. Not tested for real-world
+        deployment or safety certification, and not a substitute for any certified
+        ADAS or autonomous driving system.
+      </p>
+    </div>
+  </div>
+
+  <div class="border-t border-line py-6 text-center text-sm" style="color:var(--muted)">
+    © <span data-year>2026</span> AEGIS-PX · Built as an independent research prototype
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     3D CINEMATIC — inline ES module.
+
+     WHY INLINE: external `type="module"` files are blocked by CORS when a
+     page is opened over file://, but an INLINE module may still import from
+     https:// URLs (jsDelivr sends `access-control-allow-origin: *`). That is
+     what keeps this page working when you double-click it.
+
+     Structure:
+       1. environment + renderer
+       2. procedural environment map (reflections without an HDR file)
+       3. lighting
+       4. the car (built from primitives)
+       5. road, lane dashes, trajectory ribbon, particles
+       6. obstacles + detector boxes + labels
+       7. post-processing (bloom + grain/vignette/chromatic aberration)
+       8. the cinematic timeline (the "zoom into the model" beat)
+       9. render loop, pause/resume, resize, teardown
+     ═══════════════════════════════════════════════════════════════════ -->
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const canvas   = document.getElementById('hero-canvas');
+const fallback = document.querySelector('[data-hero-fallback]');
+
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const small   = window.matchMedia('(max-width: 767px)').matches;
+
+/* Palette — the SAME hexes as assets/css/base.css and the @theme block. */
+const C = {
+  ink: 0x06090F, road: 0x0E151E, body: 0x182432, glass: 0x0A121C,
+  sensor: 0x2FE6D6, fail: 0xFF5A6E, safe: 0x5BE49B, head: 0xEAF2FF
+};
+
+/* ── 1. Renderer ─────────────────────────────────────────────────────────
+   Guard the whole init: if WebGL2 is missing we leave the fallback copy on
+   screen instead of throwing an unhandled error. */
+let renderer = null;
+try {
+  const probe = document.createElement('canvas');
+  if (!probe.getContext('webgl2')) throw new Error('WebGL2 unavailable');
+
+  renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: !small,
+    powerPreference: 'high-performance'
+  });
+} catch (err) {
+  console.warn('[AEGIS-PX] 3D disabled:', err.message);
+  canvas.style.display = 'none';      // keep the explanatory fallback visible
+}
+
+if (renderer) {
+
+  /* DPR clamped to 2 (1.6 on small screens) — the standard perf guardrail. */
+  const DPR = Math.min(window.devicePixelRatio || 1, small ? 1.6 : 2);
+  renderer.setPixelRatio(DPR);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.06;
+  renderer.shadowMap.enabled = !small && !reduced;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(C.ink);
+  scene.fog = new THREE.FogExp2(C.ink, 0.022);   // animated by the timeline
+
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 300);
+
+  /* ── 2. Procedural environment map -------------------------------------
+     Metal reads as black without something to reflect. Instead of shipping
+     an HDR file we paint a tiny equirectangular gradient into a canvas and
+     convert it — zero download, zero license questions. */
+  function makeEnvTexture() {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 256;
+    const x = c.getContext('2d');
+
+    const sky = x.createLinearGradient(0, 0, 0, 256);
+    sky.addColorStop(0.00, '#0A1420');
+    sky.addColorStop(0.44, '#123040');
+    sky.addColorStop(0.50, '#1B4A55');   // horizon band
+    sky.addColorStop(0.56, '#0A1420');
+    sky.addColorStop(1.00, '#05070B');
+    x.fillStyle = sky;
+    x.fillRect(0, 0, 512, 256);
+
+    // white key blob → long specular highlight down the bodywork
+    const key = x.createRadialGradient(140, 66, 0, 140, 66, 95);
+    key.addColorStop(0, 'rgba(255,255,255,0.95)');
+    key.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = key;
+    x.fillRect(0, 0, 512, 256);
+
+    // teal fill from the far side → ties the reflections to the palette
+    const fill = x.createRadialGradient(395, 96, 0, 395, 96, 130);
+    fill.addColorStop(0, 'rgba(47,230,214,0.7)');
+    fill.addColorStop(1, 'rgba(47,230,214,0)');
+    x.fillStyle = fill;
+    x.fillRect(0, 0, 512, 256);
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envTexture = makeEnvTexture();
+  const envRT = pmrem.fromEquirectangular(envTexture);
+  scene.environment = envRT.texture;
+  envTexture.dispose();
+  pmrem.dispose();
+
+  /* ── 3. Lighting ─────────────────────────────────────────────────────── */
+  const hemi = new THREE.HemisphereLight(0x33506B, 0x05070B, 0.55);
+  scene.add(hemi);
+
+  const key = new THREE.DirectionalLight(0xFFFFFF, 2.0);
+  key.position.set(-6, 8, -7);
+  key.castShadow = renderer.shadowMap.enabled;
+  if (key.castShadow) {
+    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.camera.near = 0.5;
+    key.shadow.camera.far = 40;
+    const s = 9;
+    key.shadow.camera.left = -s; key.shadow.camera.right = s;
+    key.shadow.camera.top = s;   key.shadow.camera.bottom = -s;
+    key.shadow.bias = -0.0012;
+  }
+  scene.add(key);
+
+  const rim = new THREE.DirectionalLight(C.sensor, 1.5);   // teal edge light
+  rim.position.set(6, 3, 7);
+  scene.add(rim);
+
+  const underglow = new THREE.PointLight(C.sensor, 9, 7, 2); // pool under the car
+  underglow.position.set(0, 0.25, 0);
+  scene.add(underglow);
+
+  /* ── 4. The car (all procedural primitives — nothing to download) ------ */
+  const car = new THREE.Group();
+  scene.add(car);
+
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: C.body, metalness: 0.75, roughness: 0.28, envMapIntensity: 1.15
+  });
+  const glassMat = new THREE.MeshStandardMaterial({
+    color: C.glass, metalness: 1.0, roughness: 0.06, envMapIntensity: 1.6
+  });
+  const trimMat = new THREE.MeshStandardMaterial({
+    color: 0x0B1119, metalness: 0.5, roughness: 0.5
+  });
+
+  // main body
+  const body = new THREE.Mesh(new RoundedBoxGeometry(1.95, 0.5, 4.3, 5, 0.22), bodyMat);
+  body.position.y = 0.66;
+  body.castShadow = true;
+  car.add(body);
+
+  // lower skirt, gives the silhouette some weight
+  const skirt = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.3, 4.0), trimMat);
+  skirt.position.y = 0.36;
+  car.add(skirt);
+
+  // glasshouse (cabin) — dark glass so the env map reads as reflections
+  const cabin = new THREE.Mesh(new RoundedBoxGeometry(1.68, 0.56, 2.05, 5, 0.2), glassMat);
+  cabin.position.set(0, 1.12, -0.05);
+  cabin.castShadow = true;
+  car.add(cabin);
+
+  // roof panel in body colour, sits on the glasshouse
+  const roof = new THREE.Mesh(new RoundedBoxGeometry(1.5, 0.12, 1.6, 4, 0.06), bodyMat);
+  roof.position.set(0, 1.4, -0.1);
+  car.add(roof);
+
+  // headlights / taillights (emissive so bloom catches them)
+  const headMat = new THREE.MeshStandardMaterial({
+    color: 0x111820, emissive: C.head, emissiveIntensity: 3.0, roughness: 0.3
+  });
+  [-0.62, 0.62].forEach((x) => {
+    const hl = new THREE.Mesh(new RoundedBoxGeometry(0.36, 0.1, 0.08, 3, 0.03), headMat);
+    hl.position.set(x, 0.74, -2.13);
+    car.add(hl);
+  });
+  const tailMat = new THREE.MeshStandardMaterial({
+    color: 0x1A0D12, emissive: C.fail, emissiveIntensity: 2.6, roughness: 0.4
+  });
+  [-0.66, 0.66].forEach((x) => {
+    const tl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.08, 0.06), tailMat);
+    tl.position.set(x, 0.76, 2.14);
+    car.add(tl);
+  });
+
+  // wheels: front pair gets a steering pivot group so it can actually turn
+  const tyreMat = new THREE.MeshStandardMaterial({ color: 0x090D12, roughness: 0.95, metalness: 0.0 });
+  const hubMat = new THREE.MeshStandardMaterial({
+    color: 0x14202C, emissive: C.sensor, emissiveIntensity: 0.7,
+    metalness: 0.7, roughness: 0.3
+  });
+  const tyreGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.32, 24);
+  const hubGeo  = new THREE.CylinderGeometry(0.2, 0.2, 0.34, 16);
+
+  const wheelPivots = [];
+  [[-0.94, -1.35], [0.94, -1.35], [-0.94, 1.4], [0.94, 1.4]].forEach(([x, z], i) => {
+    const pivot = new THREE.Group();            // yaw = steering
+    pivot.position.set(x, 0.42, z);
+
+    const spin = new THREE.Group();             // roll = driving
+    const tyre = new THREE.Mesh(tyreGeo, tyreMat);
+    tyre.rotation.z = Math.PI / 2;
+    tyre.castShadow = true;
+    const hub = new THREE.Mesh(hubGeo, hubMat);
+    hub.rotation.z = Math.PI / 2;
+    spin.add(tyre, hub);
+
+    pivot.add(spin);
+    car.add(pivot);
+    if (i < 2) wheelPivots.push({ pivot, spin });  // only front wheels steer
+    else wheelPivots.push({ pivot: null, spin });  // rear just rolls
+  });
+
+  // roof lidar: base + spinning sensor head + translucent sweep wedge
+  const lidar = new THREE.Group();
+  lidar.position.set(0, 1.46, -0.75);
+  car.add(lidar);
+
+  const lidarBase = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.3, 0.08, 20), trimMat);
+  lidar.add(lidarBase);
+
+  const lidarHead = new THREE.Group();
+  lidarHead.position.y = 0.1;
+  lidar.add(lidarHead);
+
+  const sensorRing = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.2, 0.2, 0.14, 20),
+    new THREE.MeshStandardMaterial({
+      color: 0x0E1620, emissive: C.sensor, emissiveIntensity: 1.4, roughness: 0.4
+    })
+  );
+  lidarHead.add(sensorRing);
+
+  // half-open cone = the sweep. Cheap, additive, reads as a lidar fan.
+  const sweep = new THREE.Mesh(
+    new THREE.ConeGeometry(7, 2.4, 40, 1, true, 0, Math.PI * 0.42),
+    new THREE.MeshBasicMaterial({
+      color: C.sensor, transparent: true, opacity: 0.045,
+      blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false
+    })
+  );
+  sweep.rotation.x = Math.PI / 2;      // lay it flat, pointing forward (-z)
+  sweep.position.y = -1.2;
+  lidarHead.add(sweep);
+
+  // AI halo: a thin ring above the car that slowly rotates
+  const halo = new THREE.Mesh(
+    new THREE.TorusGeometry(1.0, 0.018, 8, 72),
+    new THREE.MeshBasicMaterial({
+      color: C.sensor, transparent: true, opacity: 0.55,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    })
+  );
+  halo.rotation.x = Math.PI / 2;
+  halo.position.y = 2.15;
+  car.add(halo);
+
+  /* ── 5a. Ground + road ------------------------------------------------- */
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(300, 300),
+    new THREE.MeshStandardMaterial({ color: 0x080D13, roughness: 0.95, metalness: 0 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  const road = new THREE.Mesh(
+    new THREE.PlaneGeometry(9, 300),
+    new THREE.MeshStandardMaterial({ color: C.road, roughness: 0.8, metalness: 0.05 })
+  );
+  road.rotation.x = -Math.PI / 2;
+  road.position.y = 0.005;
+  road.receiveShadow = true;
+  scene.add(road);
+
+  /* ── 5b. Lane dashes: one InstancedMesh, scrolled by moving its parent.
+     Recycling the whole group by one spacing interval is seamless and costs
+     nothing per frame (no per-instance matrix updates). */
+  const DASHES = 48, SPACING = 6;
+  const dashMat = new THREE.MeshStandardMaterial({
+    color: 0x0F1620, emissive: 0xB9C6D4, emissiveIntensity: 0.45, roughness: 0.6
+  });
+  const dashGeo = new THREE.BoxGeometry(0.16, 0.02, 1.7);
+  const dashes = new THREE.InstancedMesh(dashGeo, dashMat, DASHES);
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < DASHES; i++) {
+    dummy.position.set(0, 0.02, -i * SPACING);
+    dummy.updateMatrix();
+    dashes.setMatrixAt(i, dummy.matrix);
+  }
+  dashes.instanceMatrix.needsUpdate = true;
+  const dashGroup = new THREE.Group();
+  dashGroup.add(dashes);
+  scene.add(dashGroup);
+
+  // solid edge lines
+  [-3.6, 3.6].forEach((x) => {
+    const line = new THREE.Mesh(
+      new THREE.BoxGeometry(0.14, 0.02, 300),
+      new THREE.MeshStandardMaterial({
+        color: 0x0C1219, emissive: 0x6E8092, emissiveIntensity: 0.35, roughness: 0.7
+      })
+    );
+    line.position.set(x, 0.02, -120);
+    scene.add(line);
+  });
+
+  /* ── 5c. Trajectory ribbon: the path the AI is committing to ------------
+     A tube along a Catmull-Rom curve that bends around the obstacle, with a
+     scrolling dash texture for the sense of travel. */
+  function makeDashTexture() {
+    const c = document.createElement('canvas');
+    c.width = 64; c.height = 64;
+    const x = c.getContext('2d');
+    x.clearRect(0, 0, 64, 64);
+    x.fillStyle = '#2FE6D6';
+    x.fillRect(26, 0, 12, 34);           // one segment; texture repeats it
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }
+  const ribbonTex = makeDashTexture();
+  ribbonTex.repeat.set(18, 1);
+
+  const ribbonCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0.07, 4.5),
+    new THREE.Vector3(0, 0.07, -1.5),
+    new THREE.Vector3(0.3, 0.07, -5.0),
+    new THREE.Vector3(1.15, 0.07, -8.5),
+    new THREE.Vector3(1.7, 0.07, -14.0)   // swerves RIGHT, around the unknown
+  ]);
+  const ribbon = new THREE.Mesh(
+    new THREE.TubeGeometry(ribbonCurve, 150, 0.055, 6, false),
+    new THREE.MeshBasicMaterial({
+      map: ribbonTex, color: C.sensor, transparent: true,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    })
+  );
+  scene.add(ribbon);
+
+  /* ── 5d. Ambient particles --------------------------------------------
+     Point count drops hard on small screens. Same recycling trick as dashes. */
+  const P_COUNT = small ? 220 : 700;
+  const pGeo = new THREE.BufferGeometry();
+  const pPos = new Float32Array(P_COUNT * 3);
+  for (let i = 0; i < P_COUNT; i++) {
+    pPos[i * 3]     = (Math.random() - 0.5) * 40;
+    pPos[i * 3 + 1] = Math.random() * 8 + 0.3;
+    pPos[i * 3 + 2] = -Math.random() * 60 + 8;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  const particles = new THREE.Points(
+    pGeo,
+    new THREE.PointsMaterial({
+      color: 0x8FA6BC, size: 0.055, transparent: true, opacity: 0.55,
+      sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false
+    })
+  );
+  scene.add(particles);
+
+  /* ── 6. Obstacles + detector boxes + labels ---------------------------- */
+  function makeLabelSprite(text, color) {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 128;
+    const x = c.getContext('2d');
+    x.fillStyle = 'rgba(6,9,15,0.88)';
+    x.fillRect(0, 24, 512, 80);
+    x.strokeStyle = color;
+    x.lineWidth = 4;
+    x.strokeRect(2, 26, 508, 76);
+    x.fillStyle = color;
+    x.font = '600 44px "IBM Plex Mono", monospace';
+    x.textBaseline = 'middle';
+    x.fillText(text, 24, 66);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const spr = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: tex, transparent: true, depthTest: false, depthWrite: false
+    }));
+    spr.scale.set(1.6, 0.4, 1);   // modest: sprites grow as the camera nears them
+    return spr;
+  }
+
+  function makeBox(w, h, d) {
+    return new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d)),
+      new THREE.LineBasicMaterial({ color: C.sensor })
+    );
+  }
+
+  const TEAL = '#2FE6D6', RED = '#FF5A6E';
+
+  // (a) vehicle ahead — stable, confident, correct
+  const lead = new THREE.Mesh(
+    new RoundedBoxGeometry(1.8, 1.3, 3.6, 4, 0.18),
+    new THREE.MeshStandardMaterial({ color: 0x1A2634, metalness: 0.6, roughness: 0.35 })
+  );
+  lead.position.set(0.7, 0.7, -9.5);   // inside the camera's look, never on its path
+  lead.castShadow = true;
+  scene.add(lead);
+
+  const leadBox = makeBox(2.2, 1.8, 4.0);
+  leadBox.position.copy(lead.position);
+  scene.add(leadBox);
+  // No floating label here on purpose: sprites scale with proximity, and a
+  // label this close to the camera path would balloon across the frame. The
+  // HUD already carries the detector's confidence number.
+
+  // (b) barrier off to the side — also fine
+  const barrier = new THREE.Mesh(
+    new THREE.BoxGeometry(1.3, 0.95, 0.5),
+    new THREE.MeshStandardMaterial({ color: 0x233040, metalness: 0.4, roughness: 0.6 })
+  );
+  barrier.position.set(-2.6, 0.48, -8.5);   // left shoulder, clear of the path
+  scene.add(barrier);
+
+  const barrierBox = makeBox(1.7, 1.3, 0.9);
+  barrierBox.position.copy(barrier.position);
+  scene.add(barrierBox);
+
+  // (c) THE silent failure: an ambiguous shape in the fog. Its box and label
+  //     are what flip to red when the AEGIS risk spikes.
+  const unknown = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.3, 0.95, 4, 10),
+    new THREE.MeshStandardMaterial({ color: 0x2A3646, metalness: 0.3, roughness: 0.8 })
+  );
+  unknown.position.set(-1.4, 0.78, -6.5);
+  scene.add(unknown);
+
+  const unknownBox = makeBox(1.0, 2.1, 1.0);
+  unknownBox.position.copy(unknown.position);
+  scene.add(unknownBox);
+
+  const unknownLabelGood = makeLabelSprite('UNKNOWN  0.99', TEAL);
+  const unknownLabelBad  = makeLabelSprite('AEGIS RISK  0.87', RED);
+  unknownLabelGood.position.set(-1.4, 1.75, -6.5);   // low enough to clear the HUD
+  unknownLabelBad.position.copy(unknownLabelGood.position);
+  unknownLabelBad.visible = false;
+  scene.add(unknownLabelGood, unknownLabelBad);
+
+  /* ── 7. Post-processing ------------------------------------------------
+     Bloom makes emissives glow; the custom pass adds film grain, a vignette
+     and a touch of chromatic aberration. OutputPass does tone mapping + sRGB
+     conversion at the very end (required when using EffectComposer). */
+  const GrainShader = {
+    uniforms: {
+      tDiffuse:   { value: null },
+      uTime:      { value: 0 },
+      uGrain:     { value: 0.03 },   // subtle: reads as film grain, not TV static
+      uAberration:{ value: 0.0016 }
+    },
+    vertexShader: /* glsl */ `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform sampler2D tDiffuse;
+      uniform float uTime, uGrain, uAberration;
+      varying vec2 vUv;
+
+      // cheap hash noise for the film grain
+      float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
+      }
+
+      void main() {
+        vec2 uv = vUv;
+        vec2 dir = uv - 0.5;                 // vector from screen centre
+
+        // chromatic aberration: sample R and B slightly displaced, scaled by
+        // distance from centre, so the corners fringe and the middle does not
+        float a = uAberration * length(dir) * 2.0;
+        float r = texture2D(tDiffuse, uv + dir * a).r;
+        float g = texture2D(tDiffuse, uv).g;
+        float b = texture2D(tDiffuse, uv - dir * a).b;
+        vec3 col = vec3(r, g, b);
+
+        // animated grain
+        float n = hash(uv * vec2(1024.0, 1024.0) + fract(uTime));
+        col += (n - 0.5) * uGrain;
+
+        // vignette: bright centre, dark corners
+        float vig = smoothstep(0.95, 0.30, length(dir));
+        col *= mix(0.55, 1.0, vig);
+
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `
+  };
+
+  const composer = new EffectComposer(renderer);
+  composer.setPixelRatio(DPR);
+  const renderPass = new RenderPass(scene, camera);
+  const bloom = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    small ? 0.45 : 0.72,   // strength
+    0.55,                  // radius
+    0.82                   // threshold — only highlights bloom
+  );
+  const grainPass = new ShaderPass(GrainShader);
+  const outputPass = new OutputPass();
+  composer.addPass(renderPass);
+  composer.addPass(bloom);
+  composer.addPass(grainPass);
+  composer.addPass(outputPass);
+
+  const baseBloom = bloom.strength;
+
+  /* ── HUD bindings ────────────────────────────────────────────────────── */
+  const hud = {
+    confValue: document.querySelector('[data-conf-value]'),
+    confBar:   document.querySelector('[data-conf-bar]'),
+    riskValue: document.querySelector('[data-risk-value]'),
+    riskBar:   document.querySelector('[data-risk-bar]'),
+    status:    document.querySelector('[data-hero-status]'),
+    control:   document.querySelector('[data-control-state]'),
+    wheel:     document.querySelector('[data-steer-wheel]')
+  };
+  const meters = { conf: 98.7, risk: 5 };
+
+  function writeConf() {
+    const v = Math.round(meters.conf * 10) / 10;
+    hud.confValue.textContent = v.toFixed(1) + '%';
+    hud.confBar.style.width = v + '%';
+  }
+  function writeRisk() {
+    const v = Math.round(meters.risk);
+    hud.riskValue.textContent = v + '%';
+    hud.riskBar.style.width = v + '%';
+
+    // colour + glyph + text all move together (never hue alone)
+    const colour = v < 35 ? 'var(--safe)' : (v < 70 ? 'var(--alert)' : 'var(--fail)');
+    const cls    = v < 35 ? 'status-ok'  : (v < 70 ? 'status-warn' : 'status-bad');
+    const glyph  = v < 35 ? '●'          : (v < 70 ? '▲'           : '■');
+    const word   = v < 35 ? 'Monitoring' : (v < 70 ? 'Risk elevated' : 'Intervention');
+
+    hud.riskValue.style.color = colour;
+    hud.riskBar.style.background = colour;
+    hud.status.className = 'status-pill ' + cls;
+    hud.status.innerHTML = '<span aria-hidden="true">' + glyph + '</span> ' + word;
+
+    // also flip the marker in the risk header panel
+    const panel = document.querySelector('[data-risk-panel] .hud-row span:last-child');
+    if (panel) panel.textContent = glyph;
+  }
+
+  /* Flip the obstacle box + label to red and put the HUD into alert. */
+  let alarmed = false;
+  function setAlarm(on) {
+    if (on === alarmed) return;
+    alarmed = on;
+    unknownBox.material.color.set(on ? C.fail : C.sensor);
+    unknownLabelGood.visible = !on;
+    unknownLabelBad.visible = on;
+    rim.color.set(on ? C.fail : C.sensor);
+    if (hud.control) {
+      hud.control.textContent = on ? 'HANDOFF PENDING' : 'AI · STEERING';
+      hud.control.style.color = on ? 'var(--fail)' : 'var(--sensor)';
+    }
+  }
+
+  /* ── 8. Camera rig + cinematic timeline ------------------------------- */
+  // The rig is plain numbers; GSAP tweens them and the loop applies them.
+  /* Camera arc — poses sit beyond the obstacles and look back toward +z.
+     Targets are chosen so the car and the active detection both land inside
+     the 36° FOV (verified by angle, not by eye).
+     A: wide establish   B: dolly into the model   C: the alarm   D: pull back */
+  const rig = { x: 2.4, y: 2.6, z: -22.0, tx: 0, ty: 1.1, tz: -6.0 };
+  const parallax = { x: 0, y: 0, tx: 0, ty: 0 };
+
+  function applyRig() {
+    camera.position.set(rig.x + parallax.x, rig.y + parallax.y, rig.z);
+    camera.lookAt(rig.tx, rig.ty, rig.tz);
+  }
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(1, Math.round(rect.width));
+    const h = Math.max(1, Math.round(rect.height));
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h, false);
+    composer.setSize(w, h);
+    bloom.resolution.set(w, h);
+    applyRig();
+    if (reduced) composer.render();   // static mode: redraw on resize only
+  }
+
+  if (!reduced && window.gsap) {
+    const gsap = window.gsap;
+
+    const tl = gsap.timeline({
+      repeat: -1,
+      repeatDelay: 1.6,
+      defaults: { ease: 'expo.inOut' },
+      onRepeat: function () { setAlarm(false); meters.conf = 98.7; meters.risk = 5; writeConf(); writeRisk(); }
+    });
+
+    // (a) establish: slow approach down the road axis
+    tl.to(rig, { x: 2.6, y: 2.0, z: -14.0, tx: 0, ty: 1.05, tz: -4.5, duration: 2.2 }, 0)
+      .to(meters, { conf: 99.0, duration: 2.0, onUpdate: writeConf }, 0)
+
+    // (b) THE ZOOM INTO THE MODEL — push right up to the bodywork / lidar
+      .to(rig, {
+        x: 3.0, y: 1.5, z: -8.0,
+        tx: 0, ty: 1.05, tz: -1.5,
+        duration: 2.0, ease: 'power3.inOut'
+      }, 2.2)
+
+    // (c) conditions degrade: fog thickens, bloom blooms
+      .to(scene.fog, { density: 0.082, duration: 1.7, ease: 'sine.inOut' }, 4.0)
+      .to(bloom, { strength: baseBloom * 1.5, duration: 1.7, ease: 'sine.inOut' }, 4.0)
+
+    // (d) swing toward the obscured obstacle, risk climbs, alarm fires
+      .to(rig, {
+        x: 3.0, y: 1.7, z: -13.5,
+        tx: -0.4, ty: 1.0, tz: -6.5,
+        duration: 1.9, ease: 'power2.inOut'
+      }, 4.3)
+      .to(meters, { risk: 87, duration: 1.7, ease: 'power2.out', onUpdate: writeRisk }, 4.5)
+      .to(meters, { conf: 99.1, duration: 1.0, onUpdate: writeConf }, 4.5)
+      .call(function () { setAlarm(true); }, null, 5.6)
+
+    // (e) pull back to a calm three-quarter so the story resolves
+      .to(rig, {
+        x: 2.8, y: 3.0, z: -19.0,
+        tx: 0, ty: 1.1, tz: -6.0,
+        duration: 2.4
+      }, 7.2)
+      .to(scene.fog, { density: 0.022, duration: 2.0, ease: 'sine.out' }, 7.4)
+      .to(bloom, { strength: baseBloom, duration: 2.0, ease: 'sine.out' }, 7.4)
+      .to(meters, { risk: 46, duration: 2.0, onUpdate: writeRisk }, 7.6);
+  } else {
+    /* Reduced motion (or GSAP blocked): render the reveal as a single still —
+       same message, no movement. Pose C: the obstacle in frame, car behind. */
+    rig.x = 3.0; rig.y = 1.7; rig.z = -13.5;
+    rig.tx = -0.4; rig.ty = 1.0; rig.tz = -6.5;
+    scene.fog.density = 0.07;
+    meters.conf = 99.1; meters.risk = 87;
+    writeConf(); writeRisk(); setAlarm(true);
+  }
+
+  writeConf(); writeRisk();
+
+  /* Pointer parallax (fine pointers + motion allowed only). */
+  if (!reduced && window.matchMedia('(pointer: fine)').matches) {
+    window.addEventListener('pointermove', (e) => {
+      parallax.tx = (e.clientX / window.innerWidth - 0.5) * 0.55;
+      parallax.ty = (e.clientY / window.innerHeight - 0.5) * -0.3;
+    }, { passive: true });
+  }
+
+  /* ── 9. Render loop, pause/resume, resize, teardown -------------------- */
+  let rafId = null;
+  let last = performance.now();
+  let inView = true;
+  let elapsed = 0;
+
+  function update(dt) {
+    elapsed += dt;
+
+    // steering: front wheels + HUD wheel move together
+    const steer = Math.sin(elapsed * 0.85) * 0.3;
+    wheelPivots.forEach((w) => { if (w.pivot) w.pivot.rotation.y = steer; });
+    wheelPivots.forEach((w) => { w.spin.rotation.x += dt * 5.5; });
+
+    if (hud.wheel) hud.wheel.style.transform = 'rotate(' + (steer * 110).toFixed(1) + 'deg)';
+
+    // lidar spin + halo drift
+    lidarHead.rotation.y += dt * 2.4;
+    halo.rotation.z += dt * 0.35;
+
+    // scroll the road dashes and particles toward the camera (car is static)
+    dashGroup.position.z = (dashGroup.position.z + dt * 9) % SPACING;
+    particles.position.z = (particles.position.z + dt * 3) % 30;
+
+    // dash texture crawl along the trajectory ribbon
+    ribbonTex.offset.x -= dt * 0.35;
+
+    // gentle pointer parallax, smoothed
+    parallax.x += (parallax.tx - parallax.x) * 0.06;
+    parallax.y += (parallax.ty - parallax.y) * 0.06;
+  }
+
+  function frame(now) {
+    rafId = requestAnimationFrame(frame);
+    const dt = Math.min((now - last) / 1000, 0.05);  // clamp: no giant steps
+    last = now;
+
+    update(dt);
+    grainPass.uniforms.uTime.value = now * 0.001;
+    applyRig();
+    composer.render();
+  }
+
+  function start() {
+    if (rafId || reduced) return;
+    last = performance.now();
+    rafId = requestAnimationFrame(frame);
+  }
+  function stop() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  }
+
+  // Pause when the hero scrolls out of view and when the tab is hidden.
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      entries.forEach((e) => { inView = e.isIntersecting; inView ? start() : stop(); });
+    }, { threshold: 0.02 }).observe(canvas);
+  }
+  document.addEventListener('visibilitychange', () => {
+    document.hidden ? stop() : start();
+  });
+
+  // Throttled resize (150ms) — camera aspect + renderer + composer together.
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 150);
+  });
+
+  // Full teardown on unload: cancel rAF, dispose GPU resources.
+  window.addEventListener('pagehide', () => {
+    stop();
+    scene.traverse((obj) => {
+      if (obj.geometry) obj.geometry.dispose();
+      const mats = Array.isArray(obj.material) ? obj.material : (obj.material ? [obj.material] : []);
+      mats.forEach((m) => {
+        if (m.map) m.map.dispose();
+        m.dispose();
+      });
+    });
+    composer.dispose?.();
+    renderer.dispose();
+  });
+
+  /* Boot: size it, draw one frame, then reveal (hides the fallback copy). */
+  resize();
+  applyRig();
+  composer.render();
+  fallback.hidden = true;
+  if (reduced) { applyRig(); composer.render(); }
+  else start();
+
+} /* end if (renderer) */
+</script>
+
 </body>
 </html>

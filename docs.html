@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs — AEGIS-PX</title>
+<meta name="description" content="How to run, edit and understand the AEGIS-PX website: structure, scripts, accessibility notes and keyboard shortcuts.">
+<meta name="color-scheme" content="dark">
+<script>document.documentElement.classList.add('js');</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+  @theme {
+    /* !! keep in sync with :root in assets/css/base.css !! */
+    --color-ink:     #06090F;
+    --color-surface: #0D141D;
+    --color-surface2:#141E2A;
+    --color-fg:      #E9EFF5;
+    --color-muted:   #9DAAB8;
+    --color-sensor:  #2FE6D6;
+    --color-alert:   #FFB020;
+    --color-fail:    #FF5A6E;
+    --color-safe:    #5BE49B;
+    --color-line:    rgba(233,239,245,0.10);
+    --font-display:  "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --font-sans:     "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-mono:     "IBM Plex Mono", ui-monospace, monospace;
+  }
+</style>
+
+<link rel="stylesheet" href="assets/css/base.css">
+
+<style>
+  /* Definition tables used across the docs. */
+  .doc-table { width: 100%; text-align: left; font-size: .92rem; border-collapse: collapse; }
+  .doc-table th {
+    font-family: var(--font-mono);
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    padding: .7rem .8rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .doc-table td {
+    padding: .85rem .8rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+    vertical-align: top;
+  }
+  .doc-table td:first-child { color: var(--fg); font-family: var(--font-mono); font-size: .85rem; }
+  .doc-table tr:last-child td { border-bottom: 0; }
+
+  kbd {
+    font-family: var(--font-mono);
+    font-size: .8rem;
+    background: rgba(233,239,245,.07);
+    border: 1px solid var(--line);
+    border-bottom-width: 2px;
+    border-radius: 7px;
+    padding: .18rem .5rem;
+    color: var(--fg);
+    display: inline-block;
+    min-width: 1.9rem;
+    text-align: center;
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.16/dist/lenis.min.js" defer></script>
+<script src="assets/js/site.js" defer></script>
+</head>
+
+<body class="bg-ink text-fg font-sans antialiased">
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<!-- ══ HEADER ═══════════════════════════════════════════════════════════ -->
+<header class="site-header" data-header>
+  <div data-progress aria-hidden="true"
+       style="position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--sensor);
+              transform:scaleX(0);transform-origin:0 50%"></div>
+
+  <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>AEGIS<span style="color:var(--sensor)">-</span>PX</span>
+    </a>
+
+    <nav aria-label="Primary" class="hidden md:block">
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html">Home</a></li>
+        <li><a class="nav-link" href="about.html">About</a></li>
+        <li><a class="nav-link" href="description.html">Description</a></li>
+        <li><a class="nav-link" href="docs.html" aria-current="page">Docs</a></li>
+        <li><a class="nav-link" href="made-with.html">Made With</a></li>
+      </ul>
+    </nav>
+
+    <button class="nav-toggle md:hidden" type="button" data-nav-toggle
+            aria-expanded="false" aria-controls="mobile-nav" aria-label="Open main menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M3 6h14M3 10h14M3 14h14"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="mobile-nav md:hidden" id="mobile-nav" data-nav-panel hidden>
+    <ul class="nav-list" style="flex-direction:column;gap:.2rem">
+      <li><a class="nav-link" href="index.html">Home</a></li>
+      <li><a class="nav-link" href="about.html">About</a></li>
+      <li><a class="nav-link" href="description.html">Description</a></li>
+      <li><a class="nav-link" href="docs.html" aria-current="page">Docs</a></li>
+      <li><a class="nav-link" href="made-with.html">Made With</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ══ INTRO ══════════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 pt-12 pb-6 sm:px-8 lg:pt-20" aria-labelledby="docs-title">
+    <p class="chip chip-sensor mb-5"><span aria-hidden="true">◆</span> Documentation</p>
+
+    <h1 id="docs-title" class="font-display font-bold tracking-tight"
+        style="font-size:clamp(2.4rem,6vw,4.25rem);line-height:1.02;max-width:20ch">
+      How this site is built
+    </h1>
+
+    <p class="mt-6 max-w-2xl text-lg" style="color:var(--muted)">
+      Five static HTML pages, Tailwind from a CDN, Three.js for the hero, and no
+      build step anywhere. Every page opens by double-clicking it.
+    </p>
+
+    <!-- On-page section navigation — plain anchors, keyboard reachable ---- -->
+    <nav aria-label="On this page" class="mt-8">
+      <ul class="flex flex-wrap gap-2 text-sm">
+        <li><a class="chip" href="#run" style="text-decoration:none">Run it</a></li>
+        <li><a class="chip" href="#structure" style="text-decoration:none">Structure</a></li>
+        <li><a class="chip" href="#scripts" style="text-decoration:none">Scripts</a></li>
+        <li><a class="chip" href="#styling" style="text-decoration:none">Styling</a></li>
+        <li><a class="chip" href="#a11y" style="text-decoration:none">Accessibility</a></li>
+        <li><a class="chip" href="#keys" style="text-decoration:none">Shortcuts</a></li>
+        <li><a class="chip" href="#images" style="text-decoration:none">Images</a></li>
+      </ul>
+    </nav>
+  </section>
+
+  <!-- ══ RUN ════════════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-10 sm:px-8" aria-labelledby="run">
+    <div class="prose">
+      <h2 id="run" class="reveal">Run it</h2>
+
+      <p class="reveal">
+        Option A — <strong>double-click</strong> <code>index.html</code>. It works.
+        Everything the page needs is either inline, a local file, or an https URL
+        with permissive CORS.
+      </p>
+
+      <p class="reveal">
+        Option B — <strong>serve it</strong>, which gives you caching and a normal
+        <code>http://localhost</code> origin:
+      </p>
+
+<pre class="reveal"><code>npx serve .        # then open http://localhost:4173</code></pre>
+
+      <p class="reveal">
+        You need to be online for the CDN assets (Tailwind, Three.js, GSAP, Lenis,
+        Google Fonts). If a CDN is blocked the pages still render — you lose the
+        styling or the animation, not the content.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ STRUCTURE ══════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-10 sm:px-8" aria-labelledby="structure">
+    <div class="grid gap-8 lg:grid-cols-[1fr_1.2fr]">
+      <div class="prose">
+        <h2 id="structure" class="reveal">File structure</h2>
+        <p class="reveal">
+          One folder, no nesting to learn. Pages link to each other with plain
+          <code>&lt;a href&gt;</code> tags — there is no router, so each file
+          stands on its own.
+        </p>
+      </div>
+
+      <div class="panel reveal p-5">
+<pre style="margin:0"><code>KCITE-PROJECT/
+├── index.html          Home + the 3D cinematic
+├── about.html          What it does, the problem, who it's for
+├── description.html    Pipeline, degradation lab, datasets, metrics
+├── docs.html           This page
+├── made-with.html      Stack, references, credits
+└── assets/
+    ├── css/base.css    Design tokens + shared components
+    ├── js/site.js      Nav, reveals, motion, micro-interactions
+    ├── js/lab.js       The degradation lab (description only)
+    └── images/         SVG placeholders — swap these for real images</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SCRIPTS ════════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-10 sm:px-8" aria-labelledby="scripts">
+    <div class="prose" style="max-width:none">
+      <h2 id="scripts" class="reveal">Scripts</h2>
+
+      <div class="panel p-5 reveal" style="margin-top:1.5rem">
+        <div class="table-scroll"><table class="doc-table">
+          <caption class="sr-only">JavaScript files and their responsibilities</caption>
+          <thead>
+            <tr><th scope="col">File</th><th scope="col">Loads on</th><th scope="col">Responsibility</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>site.js</td>
+              <td>every page</td>
+              <td>
+                Sticky header state, the mobile menu (Escape closes it and returns
+                focus), scroll reveals with a 2.5-second failsafe, Lenis smooth
+                scroll, GSAP heading splits and parallax, magnetic buttons, card
+                tilt, cursor glow, footer year.
+              </td>
+            </tr>
+            <tr>
+              <td>lab.js</td>
+              <td>description.html</td>
+              <td>
+                Draws the synthetic camera feed on a 2D canvas and keeps four
+                readouts in sync: severity, detector confidence, AEGIS risk and
+                the response-layer output. Pauses when scrolled off-screen.
+              </td>
+            </tr>
+            <tr>
+              <td>index.html<br>(inline module)</td>
+              <td>index.html</td>
+              <td>
+                The Three.js scene: procedural car, road, lidar sweep, detector
+                boxes, post-processing and the camera timeline that zooms into the
+                model. Inline because external module files are blocked over
+                <code>file://</code>.
+              </td>
+            </tr>
+            <tr>
+              <td>CDN</td>
+              <td>every page</td>
+              <td>
+                Tailwind v4 browser build, GSAP + ScrollTrigger, Lenis, Three.js
+                r169 via an import map. All pinned to exact versions.
+              </td>
+            </tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <h3 class="reveal">The 3D import map</h3>
+      <p class="reveal">
+        Three.js is loaded with an import map so every add-on resolves against the
+        same pinned version — a mismatch here is the classic "module not found"
+        failure:
+      </p>
+<pre class="reveal"><code>&lt;script type="importmap"&gt;
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+&lt;/script&gt;</code></pre>
+    </div>
+  </section>
+
+  <!-- ══ STYLING ════════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-10 sm:px-8" aria-labelledby="styling">
+    <div class="prose" style="max-width:none">
+      <h2 id="styling" class="reveal">Styling &amp; colour</h2>
+      <p class="reveal">
+        The palette lives in <strong>two places that must agree</strong>: the
+        <code>@theme</code> block in each page's <code>&lt;head&gt;</code> (so
+        Tailwind can generate <code>bg-ink</code>, <code>text-sensor</code> and
+        friends) and <code>:root</code> in <code>assets/css/base.css</code> (so
+        components and the shaders can use <code>var(--sensor)</code>).
+      </p>
+
+      <div class="panel p-5 reveal" style="margin-top:1.5rem">
+        <div class="table-scroll"><table class="doc-table">
+          <caption class="sr-only">Colour tokens and their intended meaning</caption>
+          <thead>
+            <tr><th scope="col">Token</th><th scope="col">Hex</th><th scope="col">Means</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>--ink</td><td>#06090F</td><td>Page background</td></tr>
+            <tr><td>--surface</td><td>#0D141D</td><td>Cards and panels</td></tr>
+            <tr><td>--fg</td><td>#E9EFF5</td><td>Primary text (17.4:1 on ink)</td></tr>
+            <tr><td>--muted</td><td>#9DAAB8</td><td>Secondary text (8.4:1 on ink)</td></tr>
+            <tr><td>--sensor</td><td>#2FE6D6</td><td>The AEGIS layer, healthy signal</td></tr>
+            <tr><td>--alert</td><td>#FFB020</td><td>Warning, keyboard focus ring</td></tr>
+            <tr><td>--fail</td><td>#FF5A6E</td><td>Failure, intervention</td></tr>
+            <tr><td>--safe</td><td>#5BE49B</td><td>Nominal, safe degradation</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <p class="reveal">
+        To retint the whole site, change those eight values in both places and the
+        3D scene updates too — the hero reads the same hexes.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ ACCESSIBILITY ══════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-10 sm:px-8" aria-labelledby="a11y">
+    <div class="prose" style="max-width:none">
+      <h2 id="a11y" class="reveal">Accessibility (WCAG 2.1 AA)</h2>
+
+      <div class="grid gap-5 md:grid-cols-2" style="margin-top:1.5rem">
+        <div class="card reveal">
+          <p class="card-index">CONTRAST</p>
+          <p class="mt-2 text-sm" style="color:var(--muted)">
+            Body text 8.4:1 and headings 17.4:1 against the background; every
+            accent colour used for text clears 4.5:1 (the lowest is the red at
+            6.6:1).
+          </p>
+        </div>
+        <div class="card reveal" data-delay="90">
+          <p class="card-index">KEYBOARD</p>
+          <p class="mt-2 text-sm" style="color:var(--muted)">
+            Skip link is the first tab stop, focus rings are 3px amber with an
+            offset, the mobile menu closes on <kbd>Esc</kbd> and restores focus,
+            touch targets are at least 44px.
+          </p>
+        </div>
+        <div class="card reveal" data-delay="180">
+          <p class="card-index">NOT COLOUR ALONE</p>
+          <p class="mt-2 text-sm" style="color:var(--muted)">
+            Every status carries a glyph and a word as well as a hue, and the
+            current nav page is marked with <code>aria-current</code> plus a dot
+            plus heavier weight.
+          </p>
+        </div>
+        <div class="card reveal" data-delay="270">
+          <p class="card-index">MOTION</p>
+          <p class="mt-2 text-sm" style="color:var(--muted)">
+            <code>prefers-reduced-motion</code> stops the camera, freezes the
+            particles, disables smooth scroll and the cursor glow, and shows the
+            3D scene as a single still that still tells the story.
+          </p>
+        </div>
+      </div>
+
+      <p class="reveal" style="margin-top:1.5rem">
+        Canvas elements have <code>role="img"</code> with an <code>aria-label</code>
+        or <code>aria-describedby</code> describing what they show, the lab's
+        readouts are announced through one polite live region, and decorative
+        SVGs are <code>aria-hidden</code>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ KEYBOARD ═══════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-10 sm:px-8" aria-labelledby="keys">
+    <div class="prose" style="max-width:none">
+      <h2 id="keys" class="reveal">Keyboard shortcuts</h2>
+
+      <div class="panel p-5 reveal" style="margin-top:1.5rem">
+        <div class="table-scroll"><table class="doc-table">
+          <caption class="sr-only">Keyboard shortcuts</caption>
+          <thead>
+            <tr><th scope="col">Key</th><th scope="col">Does</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><kbd>Tab</kbd></td><td>First press jumps to “Skip to main content”.</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td>Closes the mobile menu and returns focus to its button.</td></tr>
+            <tr><td><kbd>Enter</kbd></td><td>Activates the focused link or button, including the pill radios in the lab.</td></tr>
+            <tr><td><kbd>←</kbd><kbd>→</kbd></td><td>Moves between options once a lab radio group has focus.</td></tr>
+            <tr><td><kbd>↑</kbd><kbd>↓</kbd></td><td>Nudges the severity slider when it has focus.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ IMAGES ═════════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-10 sm:px-8" aria-labelledby="images">
+    <div class="prose" style="max-width:none">
+      <h2 id="images" class="reveal">Replacing the image placeholders</h2>
+      <p class="reveal">
+        Every placeholder is a real file, so nothing ever renders as a broken
+        image. To swap one in:
+      </p>
+      <ol class="reveal">
+        <li>Put your image in <code>assets/images/</code> — overwriting the SVG or using a new filename.</li>
+        <li>Keep the <code>width</code> and <code>height</code> attributes roughly right so the layout does not jump while it loads.</li>
+        <li>Update <code>alt</code> to describe what the picture actually shows. If it is purely decorative, use <code>alt=""</code>.</li>
+        <li>Real photos: compress them (WebP or AVIF) and keep <code>loading="lazy"</code> on anything below the fold.</li>
+      </ol>
+
+      <div class="ph-img reveal" style="max-width:520px;margin-top:1.5rem">
+        <img src="assets/images/stack-logo.svg"
+             alt="Placeholder logo image demonstrating how asset swaps look on the page."
+             width="400" height="400" loading="lazy">
+      </div>
+      <p class="caption reveal">Live example — this is a placeholder rendering correctly.</p>
+    </div>
+  </section>
+
+  <!-- ══ CTA ════════════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-10 sm:px-8">
+    <div class="flex flex-wrap items-center justify-between gap-6">
+      <div>
+        <h2 class="font-display font-bold" style="font-size:clamp(1.5rem,3vw,2.1rem);margin:0">
+          See it running.
+        </h2>
+        <p class="mt-2" style="color:var(--muted)">The 3D hero and the lab are both on other pages.</p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <a class="btn btn-primary" href="index.html" data-magnetic>Back to home</a>
+        <a class="btn btn-ghost" href="description.html" data-magnetic>Open the lab</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══ FOOTER ═══════════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr]">
+    <div>
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>AEGIS<span style="color:var(--sensor)">-</span>PX</span>
+      </a>
+      <p class="mt-4 text-sm" style="color:var(--muted);max-width:34ch">
+        Detecting silent perception failures in autonomous driving by reading a
+        model's internal state instead of trusting its confidence.
+      </p>
+      <p class="chip chip-alert mt-5"><span aria-hidden="true">⚠</span> Research prototype</p>
+    </div>
+
+    <nav aria-label="Footer">
+      <h2 class="font-display text-sm uppercase tracking-widest" style="color:var(--muted)">Pages</h2>
+      <ul class="mt-4 grid gap-2 text-sm">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="description.html">Description</a></li>
+        <li><a href="docs.html" aria-current="page">Docs</a></li>
+        <li><a href="made-with.html">Made With</a></li>
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="font-display text-sm uppercase tracking-widest" style="color:var(--muted)">Notice</h2>
+      <p class="mt-4 text-sm" style="color:var(--muted)">
+        High-school independent research project. Not tested for real-world
+        deployment or safety certification.
+      </p>
+    </div>
+  </div>
+
+  <div class="border-t border-line py-6 text-center text-sm" style="color:var(--muted)">
+    © <span data-year>2026</span> AEGIS-PX · Built as an independent research prototype
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="t">
+  <title id="t">Image placeholder: CARLA simulation frame</title>
+  <rect width="1200" height="675" fill="#0A1018"/>
+  <g stroke="#2FE6D6" stroke-opacity="0.30" stroke-width="2" fill="none">
+    <path d="M0 675L600 340 1200 675M180 675L600 340M1020 675L600 340"/>
+    <path d="M0 560h1200M0 470h1200M0 400h1200"/>
+  </g>
+  <g fill="#FFB020" fill-opacity="0.75">
+    <rect x="760" y="360" width="130" height="90" rx="8"/>
+  </g>
+  <rect x="744" y="344" width="162" height="122" fill="none" stroke="#5BE49B" stroke-width="3"/>
+  <rect x="40" y="40" width="1120" height="595" rx="16" fill="none" stroke="#2FE6D6" stroke-opacity="0.4" stroke-width="2" stroke-dasharray="14 10"/>
+  <text x="600" y="170" font-family="'Space Grotesk',sans-serif" font-size="52" font-weight="700" fill="#E9EFF5" text-anchor="middle">IMAGE PLACEHOLDER</text>
+  <text x="600" y="220" font-family="'IBM Plex Mono',monospace" font-size="24" fill="#2FE6D6" text-anchor="middle">carla-weather-rain.png — 1200 × 675</text>
+  <text x="600" y="612" font-family="'Inter',sans-serif" font-size="22" fill="#9DAAB8" text-anchor="middle">CARLA frame with ground-truth bounding boxes.</text>
+</svg>

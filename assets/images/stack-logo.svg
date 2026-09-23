@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="t">
+  <title id="t">Image placeholder: technology logo</title>
+  <rect width="400" height="400" rx="24" fill="#0D141D"/>
+  <rect x="16" y="16" width="368" height="368" rx="16" fill="none" stroke="#2FE6D6" stroke-opacity="0.4" stroke-width="2" stroke-dasharray="10 8"/>
+  <circle cx="200" cy="176" r="66" fill="none" stroke="#2FE6D6" stroke-width="4"/>
+  <circle cx="200" cy="176" r="20" fill="#2FE6D6"/>
+  <text x="200" y="290" font-family="'Space Grotesk',sans-serif" font-size="30" font-weight="700" fill="#E9EFF5" text-anchor="middle">LOGO 400×400</text>
+  <text x="200" y="330" font-family="'IBM Plex Mono',monospace" font-size="17" fill="#9DAAB8" text-anchor="middle">replace svg → png</text>
+</svg>

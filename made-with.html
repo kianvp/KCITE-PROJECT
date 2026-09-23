@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Made With — AEGIS-PX</title>
+<meta name="description" content="The tools, libraries, datasets and references behind the AEGIS-PX research prototype.">
+<meta name="color-scheme" content="dark">
+<script>document.documentElement.classList.add('js');</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+  @theme {
+    /* !! keep in sync with :root in assets/css/base.css !! */
+    --color-ink:     #06090F;
+    --color-surface: #0D141D;
+    --color-surface2:#141E2A;
+    --color-fg:      #E9EFF5;
+    --color-muted:   #9DAAB8;
+    --color-sensor:  #2FE6D6;
+    --color-alert:   #FFB020;
+    --color-fail:    #FF5A6E;
+    --color-safe:    #5BE49B;
+    --color-line:    rgba(233,239,245,0.10);
+    --font-display:  "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --font-sans:     "Inter", ui-sans-serif, system-ui, sans-serif;
+    --font-mono:     "IBM Plex Mono", ui-monospace, monospace;
+  }
+</style>
+
+<link rel="stylesheet" href="assets/css/base.css">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.16/dist/lenis.min.js" defer></script>
+<script src="assets/js/site.js" defer></script>
+</head>
+
+<body class="bg-ink text-fg font-sans antialiased">
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<!-- ══ HEADER ═══════════════════════════════════════════════════════════ -->
+<header class="site-header" data-header>
+  <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>AEGIS<span style="color:var(--sensor)">-</span>PX</span>
+    </a>
+
+    <nav aria-label="Primary" class="hidden md:block">
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html">Home</a></li>
+        <li><a class="nav-link" href="about.html">About</a></li>
+        <li><a class="nav-link" href="description.html">Description</a></li>
+        <li><a class="nav-link" href="docs.html">Docs</a></li>
+        <li><a class="nav-link" href="made-with.html" aria-current="page">Made With</a></li>
+      </ul>
+    </nav>
+
+    <button class="nav-toggle md:hidden" type="button" data-nav-toggle
+            aria-expanded="false" aria-controls="mobile-nav" aria-label="Open main menu">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M3 6h14M3 10h14M3 14h14"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="mobile-nav md:hidden" id="mobile-nav" data-nav-panel hidden>
+    <ul class="nav-list" style="flex-direction:column;gap:.2rem">
+      <li><a class="nav-link" href="index.html">Home</a></li>
+      <li><a class="nav-link" href="about.html">About</a></li>
+      <li><a class="nav-link" href="description.html">Description</a></li>
+      <li><a class="nav-link" href="docs.html">Docs</a></li>
+      <li><a class="nav-link" href="made-with.html" aria-current="page">Made With</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ══ INTRO ══════════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 pt-12 pb-6 sm:px-8 lg:pt-20" aria-labelledby="made-title">
+    <p class="chip chip-sensor mb-5"><span aria-hidden="true">◆</span> Colophon</p>
+
+    <h1 id="made-title" class="font-display font-bold tracking-tight"
+        style="font-size:clamp(2.4rem,6vw,4.25rem);line-height:1.02;max-width:20ch">
+      What this was made with
+    </h1>
+
+    <p class="mt-6 max-w-2xl text-lg" style="color:var(--muted)">
+      Every library pinned, every asset either procedural or a placeholder, and a
+      list of the datasets and prior work the research stands on.
+    </p>
+  </section>
+
+  <!-- ══ FRONT-END STACK ════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8" aria-labelledby="fe-title">
+    <h2 id="fe-title" data-split class="font-display font-bold tracking-tight reveal"
+        style="font-size:clamp(1.9rem,4.4vw,3rem)">
+      Front-end stack
+    </h2>
+
+    <div class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <article class="card reveal">
+        <div class="ph-img" style="border-radius:12px">
+          <img src="assets/images/stack-logo.svg" alt="Placeholder logo for the HTML5 tile."
+               width="400" height="400" loading="lazy">
+        </div>
+        <p class="card-index mt-4">MARKUP</p>
+        <h3 class="mt-1.5 font-display text-lg">HTML5 + plain links</h3>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          Five static pages connected with <code>&lt;a href&gt;</code>. No router,
+          no bundler, no build step.
+        </p>
+      </article>
+
+      <article class="card reveal" data-delay="90">
+        <div class="ph-img" style="border-radius:12px">
+          <img src="assets/images/stack-logo.svg" alt="Placeholder logo for the Tailwind CSS tile."
+               width="400" height="400" loading="lazy">
+        </div>
+        <p class="card-index mt-4">STYLING</p>
+        <h3 class="mt-1.5 font-display text-lg">Tailwind CSS v4 (CDN)</h3>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          Loaded from the browser build, with the palette declared in an
+          <code>@theme</code> block so utilities and custom properties agree.
+        </p>
+      </article>
+
+      <article class="card reveal" data-delay="180">
+        <div class="ph-img" style="border-radius:12px">
+          <img src="assets/images/stack-logo.svg" alt="Placeholder logo for the Three.js tile."
+               width="400" height="400" loading="lazy">
+        </div>
+        <p class="card-index mt-4">3D</p>
+        <h3 class="mt-1.5 font-display text-lg">Three.js r169</h3>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          Procedural car, road, lidar sweep and detector boxes, plus bloom,
+          film grain, vignette and chromatic aberration. No models downloaded.
+        </p>
+      </article>
+
+      <article class="card reveal" data-delay="0">
+        <div class="ph-img" style="border-radius:12px">
+          <img src="assets/images/stack-logo.svg" alt="Placeholder logo for the GSAP tile."
+               width="400" height="400" loading="lazy">
+        </div>
+        <p class="card-index mt-4">MOTION</p>
+        <h3 class="mt-1.5 font-display text-lg">GSAP + ScrollTrigger</h3>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          The hero camera timeline, staggered heading reveals, parallax figures
+          and the reading-progress hairline. All eased, never linear.
+        </p>
+      </article>
+
+      <article class="card reveal" data-delay="90">
+        <div class="ph-img" style="border-radius:12px">
+          <img src="assets/images/stack-logo.svg" alt="Placeholder logo for the Lenis tile."
+               width="400" height="400" loading="lazy">
+        </div>
+        <p class="card-index mt-4">SCROLL</p>
+        <h3 class="mt-1.5 font-display text-lg">Lenis</h3>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          Smooth scrolling wired into ScrollTrigger's update cycle, and switched
+          off entirely when reduced motion is requested.
+        </p>
+      </article>
+
+      <article class="card reveal" data-delay="180">
+        <div class="ph-img" style="border-radius:12px">
+          <img src="assets/images/stack-logo.svg" alt="Placeholder logo for the Google Fonts tile."
+               width="400" height="400" loading="lazy">
+        </div>
+        <p class="card-index mt-4">TYPE</p>
+        <h3 class="mt-1.5 font-display text-lg">Google Fonts</h3>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          Space Grotesk for display, Inter for body copy, IBM Plex Mono for data
+          and HUD readouts.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ══ DATA & RESEARCH ════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8" aria-labelledby="data-title2">
+    <div class="grid gap-10 lg:grid-cols-[1fr_1fr]">
+      <div>
+        <p class="chip chip-sensor mb-5 reveal"><span aria-hidden="true">◆</span> Data</p>
+        <h2 id="data-title2" data-split class="font-display font-bold tracking-tight reveal"
+            style="font-size:clamp(1.9rem,4.4vw,3rem)">
+          Datasets &amp; simulation
+        </h2>
+
+        <div class="mt-8 grid gap-4">
+          <article class="card reveal">
+            <h3 class="font-display text-lg">BDD100K</h3>
+            <p class="mt-2 text-sm" style="color:var(--muted)">
+              Large-scale dashcam video with diverse weather, time of day and
+              locations. Used for real-world frames and for their published
+              object-detection annotations.
+            </p>
+          </article>
+
+          <article class="card reveal" data-delay="100">
+            <h3 class="font-display text-lg">CARLA</h3>
+            <p class="mt-2 text-sm" style="color:var(--muted)">
+              Open autonomous driving simulator. Provides exact ground truth,
+              scriptable weather (fog density, wetness, lighting) and repeatable
+              scenarios for sweeping conditions systematically.
+            </p>
+          </article>
+        </div>
+      </div>
+
+      <div>
+        <p class="chip chip-alert mb-5 reveal"><span aria-hidden="true">▲</span> Prior work</p>
+        <h2 id="ref-title" data-split class="font-display font-bold tracking-tight reveal"
+            style="font-size:clamp(1.9rem,4.4vw,3rem)">
+          References &amp; reading
+        </h2>
+
+        <div class="prose mt-8 reveal">
+          <ul>
+            <li>
+              <strong>Object detection under degraded conditions</strong> —
+              literature on fog, glare, rain and motion blur degrading CNN
+              detectors while confidence stays high.
+            </li>
+            <li>
+              <strong>Uncertainty &amp; calibration</strong> — work on why network
+              confidence is an unreliable correctness proxy on shifted inputs.
+            </li>
+            <li>
+              <strong>Out-of-distribution detection</strong> — methods that detect
+              unfamiliar inputs rather than trusting the softmax head.
+            </li>
+            <li>
+              <strong>Functional safety concepts</strong> — minimum risk
+              manoeuvre and fallback strategies used as framing for the response
+              layer.
+            </li>
+          </ul>
+          <p class="caption" style="margin-top:1.2rem">
+            Replace these bullets with your formal citation list (authors, title,
+            year, link) when the write-up is final.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ BUILD NOTES ════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8" aria-labelledby="build-title">
+    <div class="max-w-3xl">
+      <p class="chip chip-safe mb-5 reveal"><span aria-hidden="true">●</span> Engineering notes</p>
+      <h2 id="build-title" data-split class="font-display font-bold tracking-tight reveal"
+          style="font-size:clamp(1.9rem,4.4vw,3rem)">
+        Choices worth knowing
+      </h2>
+    </div>
+
+    <div class="mt-10 grid gap-5 md:grid-cols-3">
+      <article class="card reveal">
+        <p class="card-index">PERFORMANCE</p>
+        <h3 class="mt-3 font-display text-lg">Cheap on purpose</h3>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          Device pixel ratio capped at 2 (1.6 on phones), one InstancedMesh for
+          all lane dashes, particles reduced on small screens, rendering paused
+          when the tab is hidden or the hero scrolls away, and every GPU resource
+          disposed on unload.
+        </p>
+      </article>
+
+      <article class="card reveal" data-delay="90">
+        <p class="card-index">RESILIENCE</p>
+        <h3 class="mt-3 font-display text-lg">Degrades, never breaks</h3>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          No WebGL → an explanatory panel stays put. No GSAP → the scene shows a
+          still frame that still tells the story. Blocked CDN → content and
+          structure survive. Reveal animations force-reveal after 2.5s so nothing
+          can get stuck invisible.
+        </p>
+      </article>
+
+      <article class="card reveal" data-delay="180">
+        <p class="card-index">PROCEDURAL</p>
+        <h3 class="mt-3 font-display text-lg">Nothing to download</h3>
+        <p class="mt-2 text-sm" style="color:var(--muted)">
+          The car, road, environment reflections, dash texture and detector
+          labels are all generated at runtime from primitives and canvases — so
+          the demo stays small, loads fast and has no asset licences to worry
+          about.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ══ DISCLAIMER ═════════════════════════════════════════════════════ -->
+  <section class="mx-auto max-w-7xl px-5 py-12 sm:px-8">
+    <div class="panel reveal px-6 py-8 sm:px-9"
+         style="border-color:rgba(255,176,32,.35);background:linear-gradient(180deg,rgba(255,176,32,.08),rgba(13,20,29,.92))">
+      <span class="chip chip-alert"><span aria-hidden="true">⚠</span> Disclaimer</span>
+      <p class="mt-4 max-w-3xl text-sm" style="color:var(--muted)">
+        AEGIS-PX is a research prototype built as a high-school independent
+        research project. It is not production software, has not been tested for
+        real-world deployment, and carries no safety certification. Do not use it
+        to make decisions about a real vehicle, and do not read the figures on
+        this site as certified performance.
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a class="btn btn-primary" href="index.html" data-magnetic>Back to home</a>
+        <a class="btn btn-ghost" href="description.html" data-magnetic>Open the description</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══ FOOTER ═══════════════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr]">
+    <div>
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>AEGIS<span style="color:var(--sensor)">-</span>PX</span>
+      </a>
+      <p class="mt-4 text-sm" style="color:var(--muted);max-width:34ch">
+        Detecting silent perception failures in autonomous driving by reading a
+        model's internal state instead of trusting its confidence.
+      </p>
+      <p class="chip chip-alert mt-5"><span aria-hidden="true">⚠</span> Research prototype</p>
+    </div>
+
+    <nav aria-label="Footer">
+      <h2 class="font-display text-sm uppercase tracking-widest" style="color:var(--muted)">Pages</h2>
+      <ul class="mt-4 grid gap-2 text-sm">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="description.html">Description</a></li>
+        <li><a href="docs.html">Docs</a></li>
+        <li><a href="made-with.html" aria-current="page">Made With</a></li>
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="font-display text-sm uppercase tracking-widest" style="color:var(--muted)">Notice</h2>
+      <p class="mt-4 text-sm" style="color:var(--muted)">
+        High-school independent research project. Not tested for real-world
+        deployment or safety certification.
+      </p>
+    </div>
+  </div>
+
+  <div class="border-t border-line py-6 text-center text-sm" style="color:var(--muted)">
+    © <span data-year>2026</span> AEGIS-PX · Built as an independent research prototype
+  </div>
+</footer>
+
+</body>
+</html>
